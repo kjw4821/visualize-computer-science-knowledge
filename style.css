@@ -1,0 +1,23 @@
+:root { color-scheme: light; font-family: "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif; color: #292633; background: #faf9fc; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { height: 80px; display: flex; align-items: center; padding: 0 40px; border-bottom: 1px solid #eeecf2; background: #fff; }
+.brand { color: inherit; text-decoration: none; font-size: 20px; font-weight: 800; letter-spacing: -.6px; }
+.brand span { color: #7856d9; }
+main { max-width: 1000px; margin: 0 auto; padding: 64px 32px; }
+h1 { margin: 0 0 28px; font-size: 25px; letter-spacing: -1px; }
+.subjects { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 0; margin: 0; list-style: none; }
+button { font: inherit; cursor: pointer; }
+.subjects button { display: flex; align-items: center; gap: 20px; width: 100%; min-height: 108px; padding: 24px; text-align: left; border: 1px solid #e7e3ed; border-radius: 12px; background: #fff; color: #37313f; font-size: 17px; font-weight: 600; transition: border-color .15s, background .15s; }
+.subjects button:hover { border-color: #ac94e4; background: #f8f5ff; }
+.number { font-size: 12px; font-weight: 400; color: #9b90ae; }
+.arrow { margin-left: auto; color: #a99bbd; font-size: 20px; }
+button:focus-visible, a:focus-visible { outline: 3px solid #8b68dd; outline-offset: 4px; }
+dialog { width: min(400px, calc(100% - 40px)); padding: 28px; border: 1px solid #e7e3ed; border-radius: 14px; color: #37313f; }
+dialog::backdrop { background: #24202f55; }
+dialog h2 { margin: 0 0 14px; font-size: 21px; }
+dialog p { color: #797181; font-size: 14px; line-height: 1.7; }
+dialog form { margin-top: 24px; text-align: right; }
+.close { background: #7856d9; color: #fff; border: 0; padding: 10px 20px; border-radius: 7px; }
+@media (max-width: 640px) { header { height: 68px; padding: 0 24px; } main { padding: 40px 24px; } .subjects { grid-template-columns: 1fr; gap: 12px; } .subjects button { min-height: 88px; padding: 20px; font-size: 16px; } h1 { font-size: 23px; margin-bottom: 22px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

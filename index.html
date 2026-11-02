@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CS Knowledge 컴퓨터공학 과목 목록">
+  <title>CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main>
+    <h1>과목 목록</h1>
+    <ul class="subjects" aria-label="학습 과목">
+      <li><button data-subject="자료구조"><span class="number">01</span><span>자료구조</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+      <li><button data-subject="알고리즘"><span class="number">02</span><span>알고리즘</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+      <li><button data-subject="이산수학"><span class="number">03</span><span>이산수학</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+      <li><button data-subject="확률과 랜덤변수"><span class="number">04</span><span>확률과 랜덤변수</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+      <li><button data-subject="유닉스시스템"><span class="number">05</span><span>유닉스시스템</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+      <li><button data-subject="디지털 논리와 회로"><span class="number">06</span><span>디지털 논리와 회로</span><span class="arrow" aria-hidden="true">↗</span></button></li>
+    </ul>
+  </main>
+  <dialog aria-labelledby="subject-title" aria-describedby="subject-message">
+    <h2 id="subject-title"></h2>
+    <p id="subject-message">학습 페이지를 준비 중입니다.</p>
+    <form method="dialog"><button class="close">닫기</button></form>
+  </dialog>
+</body>
+</html>
