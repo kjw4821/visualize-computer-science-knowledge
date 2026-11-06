@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="배열의 구조와 인덱스 접근, 삽입과 삭제를 단계별 시각화로 학습">
+  <title>배열 · CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="array-model.js" defer></script>
+  <script src="array.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main class="structures-page array-page">
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">배열</span></nav>
+    <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / ARRAY</p><h1>배열 <span class="english-title">Array</span></h1><p>연속된 공간에 데이터를 저장, 인덱스로 접근</p></div>
+    <div class="array-tabs" role="tablist" aria-label="배열 학습 주제">
+      <button id="tab-access" role="tab" aria-selected="true" aria-controls="array-panel" data-mode="access">구조와 접근</button>
+      <button id="tab-insert" role="tab" aria-selected="false" aria-controls="array-panel" tabindex="-1" data-mode="insert">삽입</button>
+      <button id="tab-delete" role="tab" aria-selected="false" aria-controls="array-panel" tabindex="-1" data-mode="delete">삭제</button>
+    </div>
+    <section id="array-panel" role="tabpanel" aria-labelledby="tab-access" tabindex="0">
+      <div class="array-concept"><h2 id="concept-title">인덱스로 원소에 접근</h2><p id="concept-description">인덱스는 원소의 위치를 나타내며 0부터 시작</p></div>
+      <div class="array-visual">
+        <div class="visual-heading"><span>ARRAY VISUALIZATION</span><button id="array-reset" class="reset-button" type="button">↺ 초기화</button></div>
+        <div class="array-scroll"><div class="array-grid" id="array-cells" aria-label="배열 상태"></div></div>
+        <div class="array-meta"><span id="array-size">원소 수 4 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>
+      </div>
+      <form id="array-form" class="array-controls">
+        <label>인덱스 <input id="array-index" type="number" value="2" step="1" required></label>
+        <label id="array-value-label" hidden>값 <input id="array-value" type="number" min="-999" max="999" value="99" step="1"></label>
+        <button id="array-run" class="close" type="submit">접근</button><span id="range-hint">저장된 원소 0–3 · 용량 범위 0–5 · 범위 밖 인덱스도 입력 가능</span>
+      </form>
+      <p id="array-error" class="array-error" role="alert"></p>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">arr = [12, 24, 36, 48]</code><p id="array-message">인덱스를 입력하면 해당 위치의 원소를 강조</p></div>
+      <div class="step-controls" id="step-controls" hidden><button id="step-prev" type="button">← 이전 단계</button><span id="step-count"></span><button id="step-next" type="button">다음 단계 →</button></div>
+      <aside class="complexity-note"><strong id="complexity-title">접근 O(1)</strong><p id="complexity-description">인덱스로 위치를 계산해 바로 접근</p></aside>
+      <p class="array-model-note">고정 용량 6칸의 배열 예시 · 삽입과 삭제는 원소의 순서를 유지하는 방식<br>미사용 슬롯은 null, 용량 밖 접근은 Index out of bounds로 표현한 학습용 모델 · 실제 결과는 언어와 자료형에 따라 다름</p>
+    </section>
+    <a class="back-link" href="data-structures.html">← 자료구조 목록</a>
+  </main>
+</body>
+</html>
