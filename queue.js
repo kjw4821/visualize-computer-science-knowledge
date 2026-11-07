@@ -1,0 +1,87 @@
+'use strict';
+const $ = selector => document.querySelector(selector);
+const tabs = [...document.querySelectorAll('[data-mode]')];
+const content = {
+  peek: ['FRONT에서 가장 먼저 들어온 원소 조회', 'Peek는 맨 앞 원소를 제거하지 않고 값만 조회', 'Peek · 조회', 'Peek O(1)', 'FRONT의 값만 조회 · 원소와 참조 유지'],
+  enqueue: ['REAR 뒤에 새 원소 삽입', '새 값을 큐의 뒤에 연결한 뒤 REAR를 새 원소로 변경', 'Enqueue · 삽입', 'Enqueue O(1)', 'FRONT·REAR 참조를 유지하는 연결 방식 · 뒤쪽에 새 원소 연결'],
+  dequeue: ['FRONT의 원소를 꺼내고 제거', '가장 먼저 넣은 값을 반환한 뒤 FRONT를 다음 원소로 변경', 'Dequeue · 꺼내기', 'Dequeue O(1)', '가장 앞 원소만 제거 · 먼저 넣은 원소가 먼저 나오는 FIFO']
+};
+let mode = 'peek', values = [12, 24, 36], steps = [], cursor = 0;
+const player = new StepPlayer();
+function settle() {
+  player.stop();
+  if (steps.length && cursor === steps.length - 1) values = [...steps[cursor].values];
+  steps = []; cursor = 0;
+}
+function playSteps() {
+  player.stop();
+  if (cursor >= steps.length - 1) return;
+  player.play(() => { cursor++; render(); return cursor < steps.length - 1; });
+}
+function render() {
+  const frame = steps[cursor], current = frame ? frame.values : values;
+  const locked = steps.length > 0 && cursor < steps.length - 1;
+  $('#queue-cells').replaceChildren(...Array.from({length: QueueModel.capacity}, (_, index) => {
+    const cell = document.createElement('div');
+    cell.className = `queue-cell${index >= current.length ? ' empty' : ''}${frame?.active === index ? ' highlighted' : ''}`;
+    const marker = document.createElement('span');marker.className = 'queue-marker';
+    marker.textContent = current.length && index === 0 ? 'FRONT' : '';
+    const block = document.createElement('span');block.className = 'cell-value';block.textContent = current[index] ?? '—';
+    const rear = document.createElement('span');rear.className = 'queue-marker';
+    rear.textContent = current.length && index === current.length - 1 ? 'REAR' : '';
+    cell.setAttribute('aria-label', `순서 ${index}: ${index < current.length ? current[index] : '빈칸'}${index === 0 && current.length ? ', FRONT' : ''}${index === current.length - 1 ? ', REAR' : ''}`);
+    cell.append(marker, block, rear);return cell;
+  }));
+  $('#queue-front').textContent = current.length ? current[0] : 'null';
+  $('#queue-rear').textContent = current.length ? current[current.length - 1] : 'null';
+  $('#queue-size').textContent = `원소 수 ${current.length} / 용량 ${QueueModel.capacity}`;
+  $('#queue-transfer').textContent = frame?.incoming !== undefined ? `넣을 값 → ${frame.incoming}` : frame?.returned !== undefined ? `${mode === 'dequeue' ? '꺼낸 값' : '조회 값'} → ${frame.returned}` : mode === 'enqueue' ? 'Enqueue · 뒤에 삽입' : mode === 'dequeue' ? 'Dequeue · 앞에서 제거' : 'Peek · 데이터 유지';
+  $('#array-code').textContent = frame?.code || `queue = [${values.join(', ')}]`;
+  $('#array-message').textContent = frame?.message || '연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능';
+  $('.array-feedback').setAttribute('data-state', frame?.status || 'normal');
+  $('#step-controls').hidden = !steps.length;
+  $('#step-count').textContent = `${cursor + 1} / ${steps.length}`;
+  $('#step-prev').disabled = cursor === 0;
+  $('#step-next').disabled = cursor >= steps.length - 1;
+  $('#step-status').textContent = locked ? '자동 진행' : frame?.status === 'error' ? '연산 중단' : '진행 완료';
+  const fill = document.createElement('span');fill.className = locked ? 'step-progress-fill running' : 'step-progress-fill complete';
+  $('#step-progress').replaceChildren(fill);
+  $('#step-progress').setAttribute('aria-label', locked ? '다음 단계까지 2초 · 자동 진행 중' : '진행 종료');
+  $('#queue-value').disabled = locked || mode !== 'enqueue';
+  $('#queue-run').disabled = locked;
+  $('#range-hint').textContent = locked ? '단계 진행 중 · 초기화 또는 탭 전환 시 미완료 연산 취소' : mode === 'enqueue' ? (current.length === QueueModel.capacity ? '가득 찬 큐 · 실행 시 용량 초과 표시' : '삽입 값 -999–999 · 정수') : !current.length ? '빈 큐 · 실행 시 Queue underflow 표시' : mode === 'dequeue' ? '가장 앞 원소 반환 후 제거' : '가장 앞 원소만 조회 · 데이터 유지';
+}
+function changeMode(next) {
+  settle(); mode = next;
+  tabs.forEach(tab => {const selected = tab.dataset.mode === mode;tab.setAttribute('aria-selected', String(selected));tab.tabIndex = selected ? 0 : -1;});
+  $('#queue-panel').setAttribute('aria-labelledby', `tab-${mode}`);
+  const [title, description, action, complexity, explanation] = content[mode];
+  $('#concept-title').textContent = title;$('#concept-description').textContent = description;
+  $('#queue-run').textContent = action;$('#complexity-title').textContent = complexity;$('#complexity-description').textContent = explanation;
+  $('#queue-value-label').hidden = mode !== 'enqueue';$('#queue-value').required = mode === 'enqueue';
+  $('#queue-error').textContent = '';render();
+}
+tabs.forEach((tab, i) => {
+  tab.addEventListener('click', () => changeMode(tab.dataset.mode));
+  tab.addEventListener('keydown', event => {
+    const next = event.key === 'ArrowRight' ? (i + 1) % 3 : event.key === 'ArrowLeft' ? (i + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : null;
+    if (next !== null) {event.preventDefault();changeMode(tabs[next].dataset.mode);tabs[next].focus();}
+  });
+});
+$('#queue-form').addEventListener('submit', event => {
+  event.preventDefault();if (steps.length && cursor < steps.length - 1) return;
+  settle();
+  try {steps = QueueModel.frames(values, mode, Number($('#queue-value').value));$('#queue-error').textContent = '';}
+  catch (error) {$('#queue-error').textContent = error.message;}
+  render();playSteps();
+});
+function moveStep(offset) {
+  const next = cursor + offset;
+  if (!steps.length || next < 0 || next >= steps.length) return;
+  cursor = next;render();playSteps();
+}
+$('#step-prev').addEventListener('click', () => moveStep(-1));
+$('#step-next').addEventListener('click', () => moveStep(1));
+$('#queue-form').addEventListener('invalid', () => {$('#queue-error').textContent = '값은 -999부터 999까지의 정수로 입력';}, true);
+$('#queue-reset').addEventListener('click', () => {values = [12,24,36];steps = [];cursor = 0;$('#queue-value').value = 99;changeMode(mode);});
+changeMode('peek');

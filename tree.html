@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="트리의 계층 구조와 이진 탐색 트리의 탐색, 삽입, 삭제를 단계별 시각화로 학습">
+  <title>트리 · CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="tree-model.js" defer></script>
+  <script src="step-player.js" defer></script>
+  <script src="tree.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main class="structures-page array-page">
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">트리</span></nav>
+    <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / TREE</p><h1>트리 <span class="english-title">Tree</span></h1><p>부모와 자식 관계로 데이터를 계층적으로 연결</p></div>
+    <aside class="tree-basics" aria-label="트리의 기본 개념"><div><strong>루트 Root</strong><span>부모가 없는 시작 노드</span></div><div><strong>부모 · 자식</strong><span>간선으로 이어진 위·아래 노드</span></div><div><strong>리프 Leaf</strong><span>자식이 없는 끝 노드</span></div></aside>
+    <p class="tree-example">조작 예시 · 이진 탐색 트리 BST — 각 노드에서 왼쪽 서브트리의 값은 더 작고 오른쪽은 더 큰 구조</p>
+    <div class="array-tabs" role="tablist" aria-label="트리 학습 주제">
+      <button id="tab-search" role="tab" aria-selected="true" aria-controls="tree-panel" data-mode="search">구조와 탐색</button>
+      <button id="tab-insert" role="tab" aria-selected="false" aria-controls="tree-panel" tabindex="-1" data-mode="insert">삽입</button>
+      <button id="tab-delete" role="tab" aria-selected="false" aria-controls="tree-panel" tabindex="-1" data-mode="delete">삭제</button>
+    </div>
+    <section id="tree-panel" role="tabpanel" aria-labelledby="tab-search" tabindex="0">
+      <div class="array-concept"><h2 id="concept-title">루트부터 값을 비교하며 탐색</h2><p id="concept-description">작으면 왼쪽, 크면 오른쪽 자식으로 이동 · 일치하거나 null에 도달할 때까지 비교</p></div>
+      <div class="array-visual">
+        <div class="visual-heading"><span>BINARY SEARCH TREE</span><button id="tree-reset" class="reset-button" type="button">↺ 초기화</button></div>
+        <div class="tree-scroll"><svg id="tree-diagram" role="img" aria-label="이진 탐색 트리의 계층과 부모·자식 관계"></svg></div>
+        <div class="array-meta"><span id="tree-size">노드 수 7</span><span id="tree-summary">루트 40 · 리프 4개 · 높이 2</span></div>
+      </div>
+      <form id="tree-form" class="array-controls">
+        <label id="tree-value-label">값 <input id="tree-value" type="number" min="-999" max="999" value="30" step="1" required></label>
+        <button id="tree-run" class="close" type="submit">탐색 시작</button><span id="range-hint">입력 값 -999–999 · 정수</span>
+      </form>
+      <p id="tree-error" class="tree-error" role="alert"></p>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">root = 40</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="step-controls" id="step-controls" hidden>
+        <button id="step-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <button id="step-next" type="button" aria-label="다음 단계">→</button>
+      </div>
+      <aside class="complexity-note"><strong id="complexity-title">탐색 O(h)</strong><p id="complexity-description">트리 높이 h에 비례 · 균형이 좋으면 O(log n), 편향되면 O(n)</p></aside>
+      <p class="array-model-note">일반 트리는 값의 대소 정렬 규칙이 없음 · 이 화면의 연산은 이진 탐색 트리 기준<br>중복 값은 삽입하지 않음 · 학습용 최대 노드 수 15개 · 자동 균형 조정 없음<br>높이는 루트부터 가장 깊은 리프까지의 간선 수 · 빈 트리 높이는 -1로 표시<br>초기화 또는 탭 전환 시 미완료 연산 취소 · 완료된 연산은 다음 조작에 유지</p>
+    </section>
+    <a class="back-link" href="data-structures.html">← 자료구조 목록</a>
+  </main>
+</body>
+</html>

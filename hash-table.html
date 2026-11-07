@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="해시 테이블의 개념과 동작을 단계별 시각화로 학습">
+  <title>해시 테이블 · CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="hash-table-model.js" defer></script>
+  <script src="step-player.js" defer></script>
+  <script src="lesson-player.js" defer></script>
+  <script src="hash-table.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main class="structures-page array-page">
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">해시 테이블</span></nav>
+    <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / HASH TABLE</p><h1>해시 테이블 <span class="english-title">Hash Table</span></h1><p>해시 함수로 키를 저장 위치에 매핑, 데이터에 빠르게 접근</p></div><aside class="tree-basics" aria-label="기본 개념"><div><strong>키와 값</strong><span>키로 항목을 식별하고 값을 저장</span></div><div><strong>해시 함수</strong><span>키를 버킷 번호로 변환</span></div><div><strong>충돌 · 체이닝</strong><span>같은 버킷의 다른 키를 연결</span></div></aside>
+    <p class="tree-example">정수 키 · 버킷 7개 · h(k) = ((k % 7) + 7) % 7 · 음수 키도 0–6으로 변환</p>
+    <div class="array-tabs" role="tablist" aria-label="해시 테이블 학습 주제"><button id="tab-search" role="tab" aria-selected="true" aria-controls="lesson-panel" tabindex="0" data-mode="search">구조와 탐색</button><button id="tab-insert" role="tab" aria-selected="false" aria-controls="lesson-panel" tabindex="-1" data-mode="insert">삽입·갱신</button><button id="tab-delete" role="tab" aria-selected="false" aria-controls="lesson-panel" tabindex="-1" data-mode="delete">삭제</button></div><section id="lesson-panel" role="tabpanel" aria-labelledby="tab-search" tabindex="0">
+      <div class="array-concept"><h2 id="concept-title">해시값으로 버킷을 찾고 키 비교</h2><p id="concept-description">해시 함수로 버킷 선택 · 충돌한 항목은 체인을 따라 키를 비교</p></div>
+      <div class="array-visual"><div class="visual-heading"><span>HASH TABLE / SEPARATE CHAINING</span><button id="lesson-reset" class="reset-button" type="button">↺ 초기화</button></div><p id="hash-result" class="hash-result">해시값 = 버킷 번호 · 0–6</p><div id="hash-buckets" class="hash-buckets" aria-label="해시 테이블 버킷과 체인"></div><div class="array-meta"><span id="lesson-size"></span><span id="lesson-summary"></span></div></div>
+      <form id="lesson-form" class="array-controls"><label id="hash-key-field">키 <input id="hash-key" type="number" min="-999" max="999" value="17" step="1" required></label><label id="hash-value-field" hidden>값 <input id="hash-value" type="number" min="-999" max="999" value="99" step="1" required></label><button id="lesson-run" class="close" type="submit">탐색 시작</button><span id="range-hint"></span></form>
+      <p id="lesson-error" class="tree-error" role="alert"></p>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">연산 대기</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="step-controls" id="step-controls" hidden>
+        <button id="step-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <button id="step-next" type="button" aria-label="다음 단계">→</button>
+      </div>
+      <aside class="complexity-note"><strong id="complexity-title"></strong><p id="complexity-description"></p></aside><p class="array-model-note">서로 다른 키 10·17·24는 같은 버킷 3으로 매핑 · 해시값이 같아도 같은 키는 아님<br>체이닝 방식의 고정 버킷 7개 · 리사이징·재해싱 없음 · 부하율은 1을 넘을 수 있음<br>학습용 최대 항목 수 12개 · 한도에 도달해도 기존 키의 값 갱신 가능<br>초기화 또는 탭 전환 시 미완료 연산 취소 · 완료된 변경은 다음 조작에 유지</p>
+    </section>
+    <a class="back-link" href="data-structures.html">← 자료구조 목록</a>
+  </main>
+</body>
+</html>

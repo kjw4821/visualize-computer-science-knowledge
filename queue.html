@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="큐의 선입선출 구조와 Enqueue, Dequeue, Peek를 단계별 시각화로 학습">
+  <title>큐 · CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="queue-model.js" defer></script>
+  <script src="step-player.js" defer></script>
+  <script src="queue.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main class="structures-page array-page">
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">큐</span></nav>
+    <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / QUEUE</p><h1>큐 <span class="english-title">Queue</span></h1><p>먼저 넣은 데이터를 먼저 꺼내는 선입선출 구조</p></div>
+    <div class="array-tabs" role="tablist" aria-label="큐 학습 주제">
+      <button id="tab-peek" role="tab" aria-selected="true" aria-controls="queue-panel" data-mode="peek">구조와 조회</button>
+      <button id="tab-enqueue" role="tab" aria-selected="false" aria-controls="queue-panel" tabindex="-1" data-mode="enqueue">Enqueue · 삽입</button>
+      <button id="tab-dequeue" role="tab" aria-selected="false" aria-controls="queue-panel" tabindex="-1" data-mode="dequeue">Dequeue · 꺼내기</button>
+    </div>
+    <section id="queue-panel" role="tabpanel" aria-labelledby="tab-peek" tabindex="0">
+      <div class="array-concept"><h2 id="concept-title">FRONT에서 가장 먼저 들어온 원소 조회</h2><p id="concept-description">뒤쪽 REAR에서 삽입 · 앞쪽 FRONT에서 꺼내기 · Peek는 값만 조회</p></div>
+      <div class="array-visual">
+        <div class="visual-heading"><span>QUEUE / FIRST IN, FIRST OUT</span><button id="queue-reset" class="reset-button" type="button">↺ 초기화</button></div>
+        <div class="queue-scroll"><div class="queue-row" id="queue-cells" aria-label="큐의 논리적 순서"></div></div>
+        <div class="queue-inspector"><span>FRONT 값 <strong id="queue-front">12</strong></span><span>REAR 값 <strong id="queue-rear">36</strong></span><span id="queue-transfer" aria-live="polite">Peek · 데이터 유지</span></div>
+        <div class="array-meta"><span id="queue-size">원소 수 3 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>
+      </div>
+      <form id="queue-form" class="array-controls">
+        <label id="queue-value-label" hidden>값 <input id="queue-value" type="number" min="-999" max="999" value="99" step="1"></label>
+        <button id="queue-run" class="close" type="submit">Peek · 조회</button><span id="range-hint">가장 앞 원소만 조회 · 데이터 유지</span>
+      </form>
+      <p id="queue-error" class="queue-error" role="alert"></p>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">queue = [12, 24, 36]</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="step-controls" id="step-controls" hidden>
+        <button id="step-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <button id="step-next" type="button" aria-label="다음 단계">→</button>
+      </div>
+      <aside class="complexity-note"><strong id="complexity-title">Peek O(1)</strong><p id="complexity-description">FRONT의 값만 조회 · 데이터와 참조 유지</p></aside>
+      <p class="array-model-note">화면은 큐의 논리적 순서 · 칸의 위치는 실제 메모리 주소나 배열 인덱스와 무관<br>FRONT는 꺼낼 원소, REAR는 마지막 원소를 참조 · 시간 복잡도는 두 참조를 유지하는 연결 방식 기준<br>학습용 최대 원소 수 6개 · Queue overflow와 Queue underflow는 용량 초과와 빈 상태를 표현<br>초기화 또는 탭 전환 시 미완료 연산 취소 · 완료된 연산은 다음 조작에 유지</p>
+    </section>
+    <a class="back-link" href="data-structures.html">← 자료구조 목록</a>
+  </main>
+</body>
+</html>

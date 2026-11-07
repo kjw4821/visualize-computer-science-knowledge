@@ -9,7 +9,18 @@ const content = {
 let mode = 'access';
 let values = [12, 24, 36, 48];
 let steps = []; let cursor = 0;
+const player = new StepPlayer();
+function playSteps() {
+  player.stop();
+  if (cursor >= steps.length - 1) return;
+  player.play(() => {
+    cursor++;
+    render();
+    return cursor < steps.length - 1;
+  });
+}
 function settle() {
+  player.stop();
   // Completed operations persist; switching tabs cancels an unfinished preview.
   if (steps.length && cursor === steps.length - 1) values = steps[cursor].cells.filter(v => v !== null);
   steps = []; cursor = 0;
@@ -29,11 +40,16 @@ function render() {
   const count = frame ? frame.count : values.length;
   $('#array-size').textContent = `원소 수 ${count} / 용량 6`;
   $('#array-code').textContent = frame ? frame.code : `arr = [${values.join(', ')}]`;
-  $('#array-message').textContent = frame ? frame.message : (mode === 'access' ? '인덱스를 입력하면 해당 위치의 원소를 강조' : '위치와 값을 설정한 뒤 시작 · 다음 단계로 원소 이동 확인');
+  $('#array-message').textContent = frame ? frame.message : (mode === 'access' ? '인덱스를 입력하면 해당 위치의 원소를 강조' : '위치와 값을 설정한 뒤 시작 · 2초 간격으로 원소 이동 자동 진행');
   $('#step-controls').hidden = !steps.length || mode === 'access';
   $('#step-count').textContent = `${cursor + 1} / ${steps.length}`;
   $('#step-prev').disabled = cursor === 0;
   $('#step-next').disabled = cursor >= steps.length - 1;
+  $('#step-status').textContent = locked ? '자동 진행' : '진행 완료';
+  const fill = document.createElement('span');
+  fill.className = locked ? 'step-progress-fill running' : 'step-progress-fill complete';
+  $('#step-progress').replaceChildren(fill);
+  $('#step-progress').setAttribute('aria-label', locked ? '다음 단계까지 2초 · 자동 진행 중' : '모든 단계 진행 완료');
   $('#array-index').disabled = locked; $('#array-value').disabled = locked;
   const size = frame && !locked ? count : values.length;
   const max = mode === 'insert' ? size : size - 1;
@@ -77,11 +93,18 @@ $('#array-form').addEventListener('submit', event => {
   settle();
   try {
     steps = ArrayModel.frames(values, mode, Number($('#array-index').value), Number($('#array-value').value)); cursor = 0;
-    $('#array-error').textContent = ''; render();
+    $('#array-error').textContent = ''; render(); playSteps();
   } catch (error) { $('#array-error').textContent = error.message; render(); }
 });
-$('#step-prev').addEventListener('click', () => { if (cursor > 0) { cursor--; render(); } });
-$('#step-next').addEventListener('click', () => { if (cursor < steps.length - 1) { cursor++; render(); } });
+function moveStep(offset) {
+  const next = cursor + offset;
+  if (!steps.length || next < 0 || next >= steps.length) return;
+  cursor = next;
+  render();
+  playSteps();
+}
+$('#step-prev').addEventListener('click', () => moveStep(-1));
+$('#step-next').addEventListener('click', () => moveStep(1));
 $('#array-reset').addEventListener('click', () => { values = [12, 24, 36, 48]; steps = []; cursor = 0; $('#array-value').value = 99; changeMode(mode); });
 // Custom messages stay beside the controls, including native numeric constraint failures.
 $('#array-form').addEventListener('invalid', event => {

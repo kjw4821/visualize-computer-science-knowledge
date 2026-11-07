@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="그래프의 개념과 동작을 단계별 시각화로 학습">
+  <title>그래프 · CS Knowledge</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="graph-model.js" defer></script>
+  <script src="step-player.js" defer></script>
+  <script src="lesson-player.js" defer></script>
+  <script src="graph.js" defer></script>
+</head>
+<body>
+  <header><a class="brand" href="index.html">CS Knowledge</a></header>
+  <main class="structures-page array-page">
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">그래프</span></nav>
+    <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / GRAPH</p><h1>그래프 <span class="english-title">Graph</span></h1><p>정점과 간선으로 데이터 간 연결 관계를 표현</p></div><aside class="tree-basics" aria-label="기본 개념"><div><strong>정점 Vertex</strong><span>연결 대상이 되는 개체</span></div><div><strong>간선 Edge</strong><span>두 정점 사이의 연결</span></div><div><strong>경로 · 순환</strong><span>간선을 따라 이동 · 출발점으로 복귀</span></div></aside><p class="tree-example">단순 무방향·비가중 그래프 예시 · 간선에는 방향과 가중치가 없음 · A–F 정점 고정</p><div class="array-tabs" role="tablist" aria-label="그래프 학습 주제"><button id="tab-bfs" role="tab" aria-selected="true" aria-controls="lesson-panel" tabindex="0" data-mode="bfs">BFS · 너비 우선</button><button id="tab-dfs" role="tab" aria-selected="false" aria-controls="lesson-panel" tabindex="-1" data-mode="dfs">DFS · 깊이 우선</button><button id="tab-edit" role="tab" aria-selected="false" aria-controls="lesson-panel" tabindex="-1" data-mode="edit">간선 변경</button></div><section id="lesson-panel" role="tabpanel" aria-labelledby="tab-bfs" tabindex="0">
+      <div class="array-concept"><h2 id="concept-title">BFS · 너비 우선</h2><p id="concept-description">단순 무방향·비가중 그래프 예시 · 간선에는 방향과 가중치가 없음 · A–F 정점 고정</p></div><div class="array-visual">
+        <div class="visual-heading"><span>UNDIRECTED GRAPH</span><button id="lesson-reset" class="reset-button" type="button">↺ 초기화</button></div><div class="tree-scroll"><svg id="graph-diagram" role="img" aria-label="무방향 그래프의 정점과 간선"></svg></div><div class="array-meta"><span id="lesson-size"></span><span id="lesson-summary"></span></div></div><div class="graph-details"><div><h3>처리·방문 순서</h3><p id="graph-order">—</p><h3 id="graph-frontier-title">대기 큐 · 왼쪽부터 처리</h3><p id="graph-frontier">[]</p></div><div><h3>인접 목록</h3><ul id="graph-adjacency"></ul></div></div><form id="lesson-form" class="array-controls"><label id="graph-start-field">시작 정점 <select id="graph-start"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></label><label id="graph-from-field" hidden>정점 1 <select id="graph-from"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></label><label id="graph-to-field" hidden>정점 2 <select id="graph-to"><option value="A">A</option><option value="B" selected>B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select></label><label id="graph-action-field" hidden>연산 <select id="graph-action"><option value="add">간선 추가</option><option value="remove">간선 삭제</option></select></label><button id="lesson-run" class="close" type="submit">시작</button><span id="range-hint"></span></form>
+      <p id="lesson-error" class="tree-error" role="alert"></p>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">연산 대기</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="step-controls" id="step-controls" hidden>
+        <button id="step-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <button id="step-next" type="button" aria-label="다음 단계">→</button>
+      </div>
+      <aside class="complexity-note"><strong id="complexity-title"></strong><p id="complexity-description"></p></aside><p class="array-model-note">이웃 정점은 알파벳 순으로 확인 · 탐색은 시작 정점에서 도달 가능한 범위만 진행<br>BFS는 큐에서 꺼내 처리한 순서, DFS는 처음 방문한 순서를 표시<br>끊어진 정점은 완료 시 도달 불가로 표시 · 간선 변경 후 새로운 탐색 가능<br>초기화 또는 탭 전환 시 미완료 연산 취소 · 완료된 변경은 다음 조작에 유지</p>
+    </section>
+    <a class="back-link" href="data-structures.html">← 자료구조 목록</a>
+  </main>
+</body>
+</html>

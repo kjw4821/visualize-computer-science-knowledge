@@ -7,6 +7,7 @@
   <title>배열 · CS Knowledge</title>
   <link rel="stylesheet" href="style.css">
   <script src="array-model.js" defer></script>
+  <script src="step-player.js" defer></script>
   <script src="array.js" defer></script>
 </head>
 <body>
@@ -33,7 +34,11 @@
       </form>
       <p id="array-error" class="array-error" role="alert"></p>
       <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">arr = [12, 24, 36, 48]</code><p id="array-message">인덱스를 입력하면 해당 위치의 원소를 강조</p></div>
-      <div class="step-controls" id="step-controls" hidden><button id="step-prev" type="button">← 이전 단계</button><span id="step-count"></span><button id="step-next" type="button">다음 단계 →</button></div>
+      <div class="step-controls" id="step-controls" hidden>
+        <button id="step-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <button id="step-next" type="button" aria-label="다음 단계">→</button>
+      </div>
       <aside class="complexity-note"><strong id="complexity-title">접근 O(1)</strong><p id="complexity-description">인덱스로 위치를 계산해 바로 접근</p></aside>
       <p class="array-model-note">고정 용량 6칸의 배열 예시 · 삽입과 삭제는 원소의 순서를 유지하는 방식<br>미사용 슬롯은 null, 용량 밖 접근은 Index out of bounds로 표현한 학습용 모델 · 실제 결과는 언어와 자료형에 따라 다름</p>
     </section>
