@@ -1,113 +1,158 @@
 'use strict';
 const $ = selector => document.querySelector(selector);
+const player = new StepPlayer(1000);
+let steps = [];
+let cursor = 0;
+let mode = 'structure';
+let dimension = 2;
 const tabs = [...document.querySelectorAll('[data-mode]')];
-const content = {
-  access: ['인덱스로 원소에 접근', '인덱스는 원소의 위치를 나타내며 0부터 시작', '접근', '접근 O(1)', '인덱스로 위치를 계산해 바로 접근'],
-  insert: ['공간을 확보한 뒤 새 원소 삽입', '삽입 위치부터 뒤쪽 원소를 오른쪽으로 이동 · 마지막 원소부터 진행', '삽입 시작', '중간 삽입 O(n)', '순서를 유지하기 위해 뒤쪽 원소 이동 · 끝에 삽입하는 경우 O(1)'],
-  delete: ['원소를 제거한 뒤 빈자리 채우기', '삭제 위치의 뒤쪽 원소를 왼쪽으로 이동 · 인덱스는 고정', '삭제 시작', '중간 삭제 O(n)', '순서를 유지하기 위해 뒤쪽 원소 이동 · 끝에서 삭제하는 경우 O(1)']
-};
-let mode = 'access';
-let values = [12, 24, 36, 48];
-let steps = []; let cursor = 0;
-const player = new StepPlayer();
+function playbackInterval() {
+  return mode === 'multi' ? (dimension === 2 ? 500 : 300) : 1000;
+}
 function playSteps() {
   player.stop();
   if (cursor >= steps.length - 1) return;
+  player.interval = playbackInterval();
   player.play(() => {
     cursor++;
     render();
     return cursor < steps.length - 1;
   });
 }
-function settle() {
-  player.stop();
-  // Completed operations persist; switching tabs cancels an unfinished preview.
-  if (steps.length && cursor === steps.length - 1) values = steps[cursor].cells.filter(v => v !== null);
-  steps = []; cursor = 0;
-}
 function render() {
   const frame = steps[cursor];
-  const cells = frame ? frame.cells : Array.from({length: 6}, (_, i) => values[i] ?? null);
-  const locked = steps.length > 0 && cursor < steps.length - 1;
-  $('#array-cells').replaceChildren(...cells.map((value, i) => {
+  const locked = !!frame && cursor < steps.length - 1;
+  $('#array-memory').hidden = mode !== 'structure' || !frame;
+  $('#multi-memory').hidden = mode !== 'multi' || !frame;
+  if (mode === 'multi') renderMultidimensional(frame);
+  $('#array-placeholder').hidden = !!frame;
+  $('#array-cells').replaceChildren(...(frame && mode === 'structure' ? frame.cells : []).map((value, i) => {
     const cell = document.createElement('div');
-    cell.className = `array-cell${value === null ? ' empty' : ''}${frame?.active.includes(i) ? ' highlighted' : ''}`;
-    const valueBox = document.createElement('span'); valueBox.className = 'cell-value'; valueBox.textContent = value ?? '—';
-    const indexBox = document.createElement('span'); indexBox.className = 'cell-index'; indexBox.textContent = i;
-    cell.setAttribute('aria-label', `인덱스 ${i}: ${value === null ? '빈칸' : value}`);
-    cell.append(valueBox, indexBox); return cell;
+    cell.className = `array-cell${value === null ? ' empty' : ''}${frame.active.includes(i) ? ' highlighted' : ''}`;
+    const valueBox = document.createElement('span');
+    valueBox.className = 'cell-value'; valueBox.textContent = value === null ? '?' : value;
+    const indexBox = document.createElement('span');
+    indexBox.className = 'cell-index'; indexBox.textContent = `arr[${i}]`;
+    cell.setAttribute('aria-label', `인덱스 ${i}: ${value === null ? '미정 값' : value}`);
+    cell.append(valueBox, indexBox);
+    return cell;
   }));
-  const count = frame ? frame.count : values.length;
-  $('#array-size').textContent = `원소 수 ${count} / 용량 6`;
-  $('#array-code').textContent = frame ? frame.code : `arr = [${values.join(', ')}]`;
-  $('#array-message').textContent = frame ? frame.message : (mode === 'access' ? '인덱스를 입력하면 해당 위치의 원소를 강조' : '위치와 값을 설정한 뒤 시작 · 2초 간격으로 원소 이동 자동 진행');
-  $('#step-controls').hidden = !steps.length || mode === 'access';
-  $('#step-count').textContent = `${cursor + 1} / ${steps.length}`;
-  $('#step-prev').disabled = cursor === 0;
-  $('#step-next').disabled = cursor >= steps.length - 1;
+  const error = frame?.state === 'error';
+  const active = frame?.active[0];
+  $('#array-pointer').hidden = active === undefined;
+  $('#array-pointer').textContent = `i = ${active ?? 0}`;
+  $('#array-pointer').style.left = `${((active ?? 0) + 0.5) * 20}%`;
+  $('#array-outside-pointer').hidden = !error;
+  $('#array-outside').className = `array-outside${error ? ' outside-active' : ''}`;
+  const total = mode === 'multi' ? MultidimensionalArrayModel.shape(dimension).reduce((a, b) => a * b, 1) : 5;
+  $('#array-size').textContent = mode === 'multi' ? (frame ? `값 대입 ${frame.cells.filter(v => v !== null).length} / ${total}` : `선언 전 · 원소 ${total}개`) : frame ? `크기 n = 5 · 값 대입 ${frame.cells.filter(v => v !== null).length} / 5` : '선언 전 · 크기 n = 5';
+  $('#array-code').textContent = frame ? frame.code : 'int arr[5];';
+  $('#array-message').textContent = frame ? frame.message : '시작 대기';
+  $('.array-feedback').hidden = !frame;
+  $('.array-feedback').setAttribute('data-state', frame?.state || 'normal');
+  $('#array-reset').textContent = !frame ? '시작' : locked ? '↺ 초기화' : '다시 시작';
+  $('#step-controls').hidden = !frame;
+  $('#step-count').textContent = frame ? `${cursor + 1} / ${steps.length}` : '';
+  $('#step-prev').disabled = !frame || cursor === 0;
+  $('#step-next').disabled = !locked;
   $('#step-status').textContent = locked ? '자동 진행' : '진행 완료';
   const fill = document.createElement('span');
   fill.className = locked ? 'step-progress-fill running' : 'step-progress-fill complete';
+  fill.style.animationDuration = `${playbackInterval()}ms`;
   $('#step-progress').replaceChildren(fill);
-  $('#step-progress').setAttribute('aria-label', locked ? '다음 단계까지 2초 · 자동 진행 중' : '모든 단계 진행 완료');
-  $('#array-index').disabled = locked; $('#array-value').disabled = locked;
-  const size = frame && !locked ? count : values.length;
-  const max = mode === 'insert' ? size : size - 1;
-  const unavailable = mode === 'insert' ? size === 6 : mode === 'delete' && size === 0;
-  $('#array-run').disabled = locked || unavailable;
-  if (mode === 'access') {
-    $('#array-index').removeAttribute('min');
-    $('#array-index').removeAttribute('max');
-  } else {
-    $('#array-index').min = 0;
-    $('#array-index').max = Math.max(0, max);
+  $('#step-progress').setAttribute('aria-label', locked ? `다음 단계까지 ${playbackInterval() / 1000}초 · 자동 진행 중` : '모든 단계 진행 완료');
+}
+function moveStep(offset) {
+  const next = cursor + offset;
+  if (!steps.length || next < 0 || next >= steps.length) return;
+  cursor = next; render(); playSteps();
+}
+$('#step-prev').addEventListener('click', () => moveStep(-1));
+$('#step-next').addEventListener('click', () => moveStep(1));
+$('#array-reset').addEventListener('click', () => {
+  player.stop();
+  if (steps.length && cursor < steps.length - 1) {
+    steps = []; cursor = 0; render();
+    return;
   }
-  $('.array-feedback').setAttribute('data-state', frame?.state || 'normal');
-  $('#range-hint').textContent = mode === 'access' ? `저장된 원소 ${size ? `0–${size - 1}` : '없음'} · 용량 범위 0–5 · 범위 밖 인덱스도 입력 가능` : locked ? '단계 진행 중 · 초기화 또는 탭 전환 시 미완료 연산 취소' : unavailable ? (mode === 'insert' ? '배열 용량 초과 · 삭제 후 삽입 가능' : '빈 배열 · 삽입 후 접근 및 삭제 가능') : `입력 가능한 인덱스 0–${max}`;
+  steps = mode === 'multi' ? MultidimensionalArrayModel.frames(dimension) : ArrayModel.frames(); cursor = 0;
+  render(); playSteps();
+});
+function renderMultidimensional(frame) {
+  const dimensions = MultidimensionalArrayModel.shape(dimension);
+  const layers = dimension === 3 ? dimensions[0] : 1;
+  const rows = dimensions[dimensions.length - 2];
+  const columns = dimensions[dimensions.length - 1];
+  $('#multi-spatial').className = `multi-spatial${dimension === 3 ? ' three-dimensional' : ''}`;
+  const tables = [];
+  for (let layer = 0; layer < layers; layer++) {
+    const table = document.createElement('table');
+    table.className = 'multi-plane';
+    const caption = document.createElement('caption');
+    caption.textContent = dimension === 3 ? `arr[${layer}] · 층 ${layer}` : 'arr · 행 × 열';
+    table.append(caption);
+    const head = document.createElement('tr');
+    const corner = document.createElement('th'); corner.textContent = '행 / 열'; head.append(corner);
+    for (let column = 0; column < columns; column++) {
+      const th = document.createElement('th'); th.textContent = column; th.setAttribute('scope', 'col'); head.append(th);
+    }
+    table.append(head);
+    for (let row = 0; row < rows; row++) {
+      const tr = document.createElement('tr');
+      const th = document.createElement('th'); th.textContent = row; th.setAttribute('scope', 'row'); tr.append(th);
+      for (let column = 0; column < columns; column++) {
+        const index = (layer * rows + row) * columns + column;
+        const td = document.createElement('td');
+        td.className = `multi-value${frame?.active.includes(index) ? ' active' : ''}${frame?.cells[index] === null ? ' uninitialized' : ''}`;
+        td.textContent = frame?.cells[index] ?? '?';
+        td.setAttribute('aria-label', `${MultidimensionalArrayModel.expression(MultidimensionalArrayModel.coordinates(index, dimensions))}: ${frame?.cells[index] ?? '미정 값'}`);
+        tr.append(td);
+      }
+      table.append(tr);
+    }
+    tables.push(table);
+  }
+  $('#multi-spatial').replaceChildren(...tables);
+  $('#multi-formula').textContent = dimension === 2 ? '위치 = i × 4 + j' : '위치 = (i × 3 + j) × 4 + k';
+  $('#multi-linear').replaceChildren(...(frame?.cells ?? []).map((value, index) => {
+    const cell = document.createElement('div');
+    cell.className = `multi-linear-cell${frame.active.includes(index) ? ' active' : ''}`;
+    const location = document.createElement('span'); location.textContent = index;
+    const data = document.createElement('strong'); data.textContent = value ?? '?';
+    const label = document.createElement('small');
+    label.textContent = MultidimensionalArrayModel.coordinates(index, dimensions).map(i => `[${i}]`).join('');
+    cell.append(location, data, label); return cell;
+  }));
 }
 function changeMode(next) {
-  settle(); mode = next;
-  tabs.forEach(tab => { const selected = tab.dataset.mode === mode; tab.setAttribute('aria-selected', String(selected)); tab.tabIndex = selected ? 0 : -1; });
+  player.stop(); steps = []; cursor = 0; mode = next;
+  tabs.forEach(tab => {
+    const selected = tab.dataset.mode === mode;
+    tab.setAttribute('aria-selected', String(selected)); tab.tabIndex = selected ? 0 : -1;
+  });
   $('#array-panel').setAttribute('aria-labelledby', `tab-${mode}`);
-  const [title, description, action, complexity, explanation] = content[mode];
-  $('#concept-title').textContent = title; $('#concept-description').textContent = description;
-  $('#array-run').textContent = action; $('#complexity-title').textContent = complexity; $('#complexity-description').textContent = explanation;
-  $('#array-value-label').hidden = mode !== 'insert'; $('#array-value').required = mode === 'insert';
-  $('#array-index').value = mode === 'access' ? Math.min(2, Math.max(0, values.length - 1)) : 0;
-  $('#array-error').textContent = ''; render();
+  $('#dimension-controls').hidden = mode !== 'multi';
+  $('#concept-title').textContent = mode === 'multi' ? '02 · 다차원 배열' : '01 · 배열의 구조와 접근';
+  const dimensions = mode === 'multi' ? MultidimensionalArrayModel.shape(dimension) : [5];
+  $('#array-declaration-code').textContent = `int arr${dimensions.map(n => `[${n}]`).join('')};`;
+  $('#array-declaration-description').textContent = mode === 'multi'
+    ? (dimension === 2 ? '3행 × 4열 · i: 0–2, j: 0–3' : '2층 × 3행 × 4열 · i: 0–1, j: 0–2, k: 0–3')
+    : '원소 5개 · 유효 인덱스 0–4';
+  render();
 }
-tabs.forEach((tab, i) => {
+tabs.forEach((tab, index) => {
   tab.addEventListener('click', () => changeMode(tab.dataset.mode));
   tab.addEventListener('keydown', event => {
     let next;
-    if (event.key === 'ArrowRight') next = (i + 1) % tabs.length;
-    if (event.key === 'ArrowLeft') next = (i + tabs.length - 1) % tabs.length;
+    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
     if (event.key === 'Home') next = 0;
     if (event.key === 'End') next = tabs.length - 1;
     if (next !== undefined) { event.preventDefault(); changeMode(tabs[next].dataset.mode); tabs[next].focus(); }
   });
 });
-$('#array-form').addEventListener('submit', event => {
-  event.preventDefault();
-  if (steps.length && cursor < steps.length - 1) return;
-  settle();
-  try {
-    steps = ArrayModel.frames(values, mode, Number($('#array-index').value), Number($('#array-value').value)); cursor = 0;
-    $('#array-error').textContent = ''; render(); playSteps();
-  } catch (error) { $('#array-error').textContent = error.message; render(); }
+$('#array-dimension').addEventListener('change', () => {
+  dimension = Number($('#array-dimension').value);
+  changeMode('multi');
 });
-function moveStep(offset) {
-  const next = cursor + offset;
-  if (!steps.length || next < 0 || next >= steps.length) return;
-  cursor = next;
-  render();
-  playSteps();
-}
-$('#step-prev').addEventListener('click', () => moveStep(-1));
-$('#step-next').addEventListener('click', () => moveStep(1));
-$('#array-reset').addEventListener('click', () => { values = [12, 24, 36, 48]; steps = []; cursor = 0; $('#array-value').value = 99; changeMode(mode); });
-// Custom messages stay beside the controls, including native numeric constraint failures.
-$('#array-form').addEventListener('invalid', event => {
-  $('#array-error').textContent = event.target === $('#array-index') ? (mode === 'access' ? '인덱스는 정수로 입력' : `인덱스는 0부터 ${$('#array-index').max}까지의 정수`) : '삽입 값은 -999부터 999까지의 정수';
-}, true);
-changeMode('access');
+changeMode('structure');

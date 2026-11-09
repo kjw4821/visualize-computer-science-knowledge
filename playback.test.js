@@ -7,22 +7,22 @@ function harness(name) {
   let now = 0, serial = 0;
   const timers = new Map(), elements = new Map();
   function element() { return {dataset:{},style:{},handlers:{},value:'99',children:[],setAttribute(k,v){this[k]=v},removeAttribute(k){delete this[k]},addEventListener(k,f){this.handlers[k]=f},replaceChildren(...nodes){this.children=nodes},append(...nodes){this.children.push(...nodes)},focus(){}}; }
-  const modes = name === 'heap' ? ['peek','insert','extract'] : name === 'graph' ? ['bfs','dfs','edit'] : name === 'queue' ? ['peek','enqueue','dequeue'] : name === 'stack' ? ['peek','push','pop'] : name === 'array' ? ['access','insert','delete'] : ['search','insert','delete'];
+  const modes = name === 'heap' ? ['peek','insert','extract'] : name === 'graph' ? ['bfs','dfs','edit'] : name === 'queue' ? ['peek','enqueue','dequeue'] : name === 'stack' ? ['peek','push','pop'] : name === 'array' ? ['structure','multi'] : ['search','insert','delete'];
   const tabs=modes.map(mode=>{const e=element();e.dataset.mode=mode;return e;});
   const document={querySelector(s){if(!elements.has(s))elements.set(s,element());return elements.get(s)},querySelectorAll(){return tabs},createElement:element,createElementNS:element};
-  const context=vm.createContext({document,ArrayModel:require('./array-model.js'),LinkedListModel:require('./linked-list-model.js'),StackModel:require('./stack-model.js'),QueueModel:require('./queue-model.js'),TreeModel:require('./tree-model.js'),HeapModel:require('./heap-model.js'),GraphModel:require('./graph-model.js'),HashTableModel:require('./hash-table-model.js'),setTimeout(fn,delay){const id=++serial;timers.set(id,{fn,time:now+delay});return id;},clearTimeout(id){timers.delete(id);}});
+  const context=vm.createContext({document,MultidimensionalArrayModel:require('./multidimensional-array-model.js'),ArrayModel:require('./array-model.js'),LinkedListModel:require('./linked-list-model.js'),StackModel:require('./stack-model.js'),QueueModel:require('./queue-model.js'),TreeModel:require('./tree-model.js'),HeapModel:require('./heap-model.js'),GraphModel:require('./graph-model.js'),HashTableModel:require('./hash-table-model.js'),setTimeout(fn,delay){const id=++serial;timers.set(id,{fn,time:now+delay});return id;},clearTimeout(id){timers.delete(id);}});
   vm.runInContext(fs.readFileSync('step-player.js','utf8'),context);
   if(['heap','graph','hash-table'].includes(name))vm.runInContext(fs.readFileSync('lesson-player.js','utf8'),context);
   vm.runInContext(fs.readFileSync(name+'.js','utf8'),context);
   const get=s=>document.querySelector(s), prefix=name==='tree'?'tree':name==='queue'?'queue':name==='stack'?'stack':name==='array'?'array':'list';
   return {get,timers,context,
     mode(mode){tabs[modes.indexOf(mode)].handlers.click();},
-    run(index=1){get(`#${prefix}-index`).value=String(index);get(`#${prefix}-form`).handlers.submit({preventDefault(){}});},
+    run(index=1){if(name==='array'){get('#array-reset').handlers.click();return;}get(`#${prefix}-index`).value=String(index);get(`#${prefix}-form`).handlers.submit({preventDefault(){}});},
     reset(){get(`#${prefix}-reset`).handlers.click();},
     advance(ms){const end=now+ms;while(true){const next=[...timers].sort((a,b)=>a[1].time-b[1].time)[0];if(!next || next[1].time>end)break;timers.delete(next[0]);now=next[1].time;next[1].fn();}now=end;}
   };
 }
-for (const name of ['array','linked-list']) {
+for (const name of ['linked-list']) {
   test(`${name}: automatic steps wait 2000ms, complete and preserve edits`,()=>{
     const h=harness(name);h.mode('insert');h.run();
     const first=h.get('#step-count').textContent;
@@ -47,9 +47,39 @@ test('linked-list: search and out-of-range traversal automatically reach result'
   const h=harness('linked-list');h.run(2);h.advance(60000);assert.match(h.get('#array-code').textContent,/36/);assert.equal(h.timers.size,0);
   h.run(10);h.advance(60000);assert.match(h.get('#array-code').textContent,/null/);assert.equal(h.timers.size,0);
 });
-test('array: direct access never schedules a timer',()=>{
-  const h=harness('array');h.run(2);assert.match(h.get('#array-code').textContent,/36/);assert.equal(h.timers.size,0);
+test('array: declaration, timed assignments, bounds stop, reset and restart',()=>{
+  const h=harness('array');
+  assert.equal(h.get('#array-memory').hidden,true);
+  h.run();const first=h.get('#step-count').textContent;
+  assert.equal(h.get('#array-cells').children.length,5);
+  assert.equal(h.get('#array-reset').textContent,'↺ 초기화');
+  assert.equal(h.timers.size,1);
+  h.advance(999);assert.equal(h.get('#step-count').textContent,first);
+  h.advance(1);assert.match(h.get('#array-code').textContent,/arr\[0\] =/);
+  assert.equal(h.get('#array-pointer').hidden,false);
+  assert.equal(h.get('#array-pointer').textContent,'i = 0');
+  assert.equal(h.get('#array-pointer').style.left,'10%');
+  h.advance(4000);assert.match(h.get('#array-code').textContent,/arr\[4\] =/);
+  assert.equal(h.get('#array-pointer').textContent,'i = 4');
+  assert.equal(h.get('#array-pointer').style.left,'90%');
+  h.advance(1000);assert.match(h.get('#array-code').textContent,/arr\[5\] =/);
+  assert.match(h.get('#array-outside').className,/outside-active/);
+  assert.equal(h.get('#array-pointer').hidden,true);
+  assert.equal(h.get('#array-outside-pointer').hidden,false);
+  assert.equal(h.get('#array-cells').children.length,5);
+  assert.equal(h.get('#array-reset').textContent,'다시 시작');assert.equal(h.timers.size,0);
+  h.run();assert.equal(h.get('#step-count').textContent,'1 / 7');
+  const obsolete=[...h.timers.values()][0].fn;
+  h.reset();obsolete();h.advance(60000);
+  assert.equal(h.get('#array-memory').hidden,true);assert.equal(h.timers.size,0);
+  assert.equal(h.get('#step-controls').hidden,true);
+  assert.equal(h.get('#array-reset').textContent,'시작');
+  assert.equal(h.get('#array-pointer').hidden,true);
+  assert.equal(h.get('#array-outside-pointer').hidden,true);
+  h.run();assert.equal(h.get('#step-count').textContent,'1 / 7');
+  assert.equal(h.timers.size,1);
 });
+
 test('StepPlayer ignores obsolete callbacks after stop',()=>{
   const h=harness('array');
   vm.runInContext('globalThis.probe = new StepPlayer(); globalThis.calls = 0; probe.play(() => { calls++; return true; });',h.context);
@@ -58,15 +88,16 @@ test('StepPlayer ignores obsolete callbacks after stop',()=>{
   assert.equal(h.context.calls,0);assert.equal(h.timers.size,0);
 });
 for (const name of ['array','linked-list']) {
-  test(`${name}: manual navigation restarts the 2s countdown and refreshes the progress bar`,()=>{
-    const h=harness(name);h.mode('insert');h.run();
+  test(`${name}: manual navigation restarts the countdown and refreshes the progress bar`,()=>{
+    const h=harness(name);if(name !== 'array') h.mode('insert');h.run();
     assert.equal(h.get('#step-prev').disabled,true);
     assert.equal(h.get('#step-next').disabled,false);
     assert.match(h.get('#step-progress').children[0].className,/running/);
-    h.advance(1500);
+    const interval = name === 'array' ? 1000 : 2000;
+    h.advance(interval - 500);
     h.get('#step-next').handlers.click();
     const manual=h.get('#step-count').textContent;
-    h.advance(1999);assert.equal(h.get('#step-count').textContent,manual);
+    h.advance(interval - 1);assert.equal(h.get('#step-count').textContent,manual);
     h.advance(1);assert.notEqual(h.get('#step-count').textContent,manual);
     h.get('#step-prev').handlers.click();
     assert.equal(h.get('#step-count').textContent,manual);
@@ -81,7 +112,7 @@ for (const name of ['array','linked-list']) {
     assert.equal(h.timers.size,0);assert.equal(h.get('#step-status').textContent,'진행 완료');
   });
   test(`${name}: manual jumps cannot revive a cancelled timer`,()=>{
-    const h=harness(name);h.mode('insert');h.run();
+    const h=harness(name);if(name !== 'array') h.mode('insert');h.run();
     const obsolete=[...h.timers.values()][0].fn;
     h.get('#step-next').handlers.click();
     const current=h.get('#step-count').textContent;
@@ -215,4 +246,40 @@ test('hash table: negative keys, missing keys and cancelled operations',()=>{
   h.mode('insert');run();h.advance(60000);assert.match(h.get('#lesson-size').textContent,/항목 6개/);
   h.mode('search');run();h.advance(60000);assert.match(h.get('#hash-result').textContent,/버킷 \[6\]/);assert.match(h.get('#array-code').textContent,/→ -5$/);
   h.mode('delete');run();h.get('#lesson-reset').handlers.click();h.advance(60000);assert.equal(h.timers.size,0);assert.match(h.get('#lesson-size').textContent,/항목 5개/);
+});
+
+test('multidimensional: matched spatial and memory states, row and layer boundaries, dimension cancellation', () => {
+  const h = harness('array');
+  h.mode('multi');
+  assert.equal(h.get('#array-declaration-code').textContent, 'int arr[3][4];');
+  h.run();
+  assert.equal(h.get('#multi-spatial').children.length, 1);
+  assert.equal(h.get('#multi-linear').children.length, 12);
+  assert.equal(h.get('#step-progress').children[0].style.animationDuration, '500ms');
+  h.advance(499);assert.equal(h.get('#step-count').textContent, '1 / 13');
+  h.advance(1);
+  const first = h.get('#multi-spatial').children[0].children[2].children[1];
+  assert.match(first.className, /active/);
+  assert.equal(first.textContent, h.get('#multi-linear').children[0].children[1].textContent);
+  h.advance(2000);assert.match(h.get('#array-code').textContent, /arr\[1\]\[0\] =/);
+  const obsolete = [...h.timers.values()][0].fn;
+  h.get('#array-dimension').value = '3';h.get('#array-dimension').handlers.change();
+  obsolete();assert.equal(h.timers.size, 0);
+  assert.equal(h.get('#array-declaration-code').textContent, 'int arr[2][3][4];');
+  assert.equal(h.get('#multi-memory').hidden, true);
+  h.run();
+  assert.equal(h.get('#multi-spatial').children.length, 2);
+  assert.equal(h.get('#multi-linear').children.length, 24);
+  assert.equal(h.get('#step-progress').children[0].style.animationDuration, '300ms');
+  h.advance(299);assert.equal(h.get('#step-count').textContent, '1 / 25');
+  h.advance(1);assert.equal(h.get('#step-count').textContent, '2 / 25');
+  h.advance(3600);assert.match(h.get('#array-code').textContent, /arr\[1\]\[0\]\[0\] =/);
+  h.get('#step-prev').handlers.click();
+  assert.match(h.get('#array-code').textContent, /arr\[0\]\[2\]\[3\] =/);
+  h.advance(300);assert.match(h.get('#array-code').textContent, /arr\[1\]\[0\]\[0\] =/);
+  h.advance(60000);assert.equal(h.get('#step-count').textContent, '25 / 25');
+  assert.equal(h.timers.size, 0);assert.equal(h.get('#array-reset').textContent, '다시 시작');
+  h.run();h.mode('structure');h.advance(60000);
+  assert.equal(h.timers.size, 0);assert.equal(h.get('#array-memory').hidden, true);
+  h.run();assert.equal(h.get('#step-count').textContent, '1 / 7');
 });
