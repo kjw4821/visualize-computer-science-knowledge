@@ -12,7 +12,7 @@
 </head>
 <body>
   <header><a class="brand" href="index.html">CS Knowledge</a></header>
-  <main class="structures-page array-page">
+  <main class="structures-page array-page stack-page">
     <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">스택</span></nav>
     <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / STACK</p><h1>스택 <span class="english-title">Stack</span></h1><p>마지막에 넣은 데이터를 먼저 꺼내는 후입선출 구조</p></div>
     <div class="array-tabs" role="tablist" aria-label="스택 학습 주제">
@@ -23,19 +23,19 @@
     <section id="stack-panel" role="tabpanel" aria-labelledby="tab-peek" tabindex="0">
       <div class="array-concept"><h2 id="concept-title">TOP에서 가장 최근 원소 조회</h2><p id="concept-description">삽입과 꺼내기는 TOP에서만 진행 · Peek는 원소를 제거하지 않고 값만 조회</p></div>
       <div class="array-visual">
-        <div class="visual-heading"><span>STACK / LAST IN, FIRST OUT</span><button id="stack-reset" class="reset-button" type="button">↺ 초기화</button></div>
-        <div class="stack-scene"><div class="stack-tower" id="stack-cells" aria-label="스택 상태"></div><div class="stack-inspector"><span class="stack-inspector-label">TOP</span><strong id="stack-top">2</strong><p>가장 위 원소의 위치<br>빈 스택에서는 -1</p><div id="stack-transfer" class="stack-transfer" aria-live="polite">Peek · 데이터 유지</div></div></div>
+        <div class="visual-heading"><span>STACK / LAST IN, FIRST OUT</span><button id="stack-run" class="reset-button" type="submit" form="stack-form">시작</button></div>
+        <div class="stack-scene"><div class="stack-tower" id="stack-cells" aria-label="스택 상태"></div><div class="stack-inspector"><span class="stack-inspector-label">TOP</span><strong id="stack-top">2</strong><p>가장 위 원소의 위치<br>빈 스택에서는 -1</p><div class="transfer-area"><span>이동 값</span><div id="stack-transfer" class="stack-transfer transfer-box" aria-live="polite">—</div></div></div></div>
         <div class="array-meta"><span id="stack-size">원소 수 3 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>
       </div>
       <form id="stack-form" class="array-controls">
         <label id="stack-value-label" hidden>값 <input id="stack-value" type="number" min="-999" max="999" value="99" step="1"></label>
-        <button id="stack-run" class="close" type="submit">Peek · 조회</button><span id="range-hint">가장 위 원소만 조회 · 데이터 유지</span>
+        <span id="range-hint">가장 위 원소만 조회 · 데이터 유지</span>
       </form>
       <p id="stack-error" class="stack-error" role="alert"></p>
-      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">stack = [12, 24, 36]</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">stack = [12, 24, 36]</code><p id="array-message">연산 시작 후 1초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
       <div class="step-controls" id="step-controls" hidden>
         <button id="step-prev" type="button" aria-label="이전 단계">←</button>
-        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 1초"><span class="step-progress-fill"></span></div></div>
         <button id="step-next" type="button" aria-label="다음 단계">→</button>
       </div>
       <aside class="complexity-note"><strong id="complexity-title">Peek O(1)</strong><p id="complexity-description">TOP의 값만 조회 · 데이터와 TOP 유지</p></aside>

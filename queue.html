@@ -12,7 +12,7 @@
 </head>
 <body>
   <header><a class="brand" href="index.html">CS Knowledge</a></header>
-  <main class="structures-page array-page">
+  <main class="structures-page array-page queue-page">
     <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">큐</span></nav>
     <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / QUEUE</p><h1>큐 <span class="english-title">Queue</span></h1><p>먼저 넣은 데이터를 먼저 꺼내는 선입선출 구조</p></div>
     <div class="array-tabs" role="tablist" aria-label="큐 학습 주제">
@@ -23,20 +23,20 @@
     <section id="queue-panel" role="tabpanel" aria-labelledby="tab-peek" tabindex="0">
       <div class="array-concept"><h2 id="concept-title">FRONT에서 가장 먼저 들어온 원소 조회</h2><p id="concept-description">뒤쪽 REAR에서 삽입 · 앞쪽 FRONT에서 꺼내기 · Peek는 값만 조회</p></div>
       <div class="array-visual">
-        <div class="visual-heading"><span>QUEUE / FIRST IN, FIRST OUT</span><button id="queue-reset" class="reset-button" type="button">↺ 초기화</button></div>
+        <div class="visual-heading"><span>QUEUE / FIRST IN, FIRST OUT</span><button id="queue-run" class="reset-button" type="submit" form="queue-form">시작</button></div>
         <div class="queue-scroll"><div class="queue-row" id="queue-cells" aria-label="큐의 논리적 순서"></div></div>
-        <div class="queue-inspector"><span>FRONT 값 <strong id="queue-front">12</strong></span><span>REAR 값 <strong id="queue-rear">36</strong></span><span id="queue-transfer" aria-live="polite">Peek · 데이터 유지</span></div>
+        <div class="queue-inspector"><span>FRONT 값 <strong id="queue-front">12</strong></span><span>REAR 값 <strong id="queue-rear">36</strong></span><span class="transfer-area">이동 값 <strong id="queue-transfer" class="transfer-box" aria-live="polite">—</strong></span></div>
         <div class="array-meta"><span id="queue-size">원소 수 3 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>
       </div>
       <form id="queue-form" class="array-controls">
         <label id="queue-value-label" hidden>값 <input id="queue-value" type="number" min="-999" max="999" value="99" step="1"></label>
-        <button id="queue-run" class="close" type="submit">Peek · 조회</button><span id="range-hint">가장 앞 원소만 조회 · 데이터 유지</span>
+        <span id="range-hint">가장 앞 원소만 조회 · 데이터 유지</span>
       </form>
       <p id="queue-error" class="queue-error" role="alert"></p>
-      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">queue = [12, 24, 36]</code><p id="array-message">연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
+      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">queue = [12, 24, 36]</code><p id="array-message">연산 시작 후 1초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능</p></div>
       <div class="step-controls" id="step-controls" hidden>
         <button id="step-prev" type="button" aria-label="이전 단계">←</button>
-        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 1초"><span class="step-progress-fill"></span></div></div>
         <button id="step-next" type="button" aria-label="다음 단계">→</button>
       </div>
       <aside class="complexity-note"><strong id="complexity-title">Peek O(1)</strong><p id="complexity-description">FRONT의 값만 조회 · 데이터와 참조 유지</p></aside>

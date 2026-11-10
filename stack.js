@@ -6,8 +6,9 @@ const content = {
   push: ['TOP 위에 새 원소 삽입', '새 값을 스택 맨 위에 저장한 뒤 TOP을 새 원소로 이동', 'Push · 삽입', 'Push O(1)', '다른 원소 이동 없이 TOP 위에 저장 · 용량이 고정된 배열 기반 예시'],
   pop: ['TOP의 원소를 꺼내고 제거', '가장 최근에 넣은 값을 반환한 뒤 TOP을 바로 아래 원소로 이동', 'Pop · 꺼내기', 'Pop O(1)', '가장 위 원소만 제거 · 마지막에 넣은 원소가 먼저 나오는 LIFO']
 };
+let lastRenderedCursor = -1;
 let mode = 'peek', values = [12, 24, 36], steps = [], cursor = 0;
-const player = new StepPlayer();
+const player = new StepPlayer(1000);
 function settle() {
   player.stop();
   if (steps.length && cursor === steps.length - 1) values = [...steps[cursor].values];
@@ -21,7 +22,7 @@ function playSteps() {
 function render() {
   const frame = steps[cursor], current = frame ? frame.values : values;
   const locked = steps.length > 0 && cursor < steps.length - 1;
-  $('#stack-cells').replaceChildren(...Array.from({length: StackModel.capacity}, (_, index) => {
+  if (!$('#stack-cells').children.length) $('#stack-cells').replaceChildren(...Array.from({length: StackModel.capacity}, (_, index) => {
     const row = document.createElement('div');
     row.className = `stack-slot${index >= current.length ? ' empty' : ''}${frame?.active === index ? ' highlighted' : ''}`;
     const top = document.createElement('span');top.className = 'stack-top-marker';
@@ -31,11 +32,33 @@ function render() {
     row.setAttribute('aria-label', `위치 ${index}: ${index < current.length ? current[index] : '빈칸'}${index === current.length - 1 ? ', TOP' : ''}`);
     row.append(top, block, position);return row;
   }));
+  [...$('#stack-cells').children].forEach((row, index) => {
+    row.className = `stack-slot${index >= current.length ? ' empty' : ''}${frame?.active === index ? ' highlighted' : ''}`;
+    row.children[0].textContent = current.length && index === current.length - 1 ? 'TOP →' : '';
+    row.children[1].textContent = current[index] ?? '—';
+    row.setAttribute('aria-label', `위치 ${index}: ${index < current.length ? current[index] : '빈칸'}${index === current.length - 1 ? ', TOP' : ''}`);
+  });
   $('#stack-top').textContent = current.length - 1;
   $('#stack-size').textContent = `원소 수 ${current.length} / 용량 ${StackModel.capacity}`;
-  $('#stack-transfer').textContent = frame?.incoming !== undefined ? `넣을 값 → ${frame.incoming}` : frame?.returned !== undefined ? `${mode === 'pop' ? '꺼낸 값' : '조회 값'} → ${frame.returned}` : mode === 'push' ? 'Push · 맨 위에 삽입' : mode === 'pop' ? 'Pop · 맨 위에서 제거' : 'Peek · 데이터 유지';
+  const transfer = $('#stack-transfer');
+  transfer.textContent = frame?.status === 'error' ? frame.code.split(' → ')[1] : frame?.incoming !== undefined ? frame.incoming : frame?.returned !== undefined ? frame.returned : '—';
+  transfer.setAttribute('aria-label', frame?.status === 'error' ? transfer.textContent : frame?.incoming !== undefined ? `넣을 값 ${frame.incoming}` : frame?.returned !== undefined ? `반환 값 ${frame.returned}` : '이동할 값 없음');
+  if (frame && cursor === lastRenderedCursor + 1 && cursor > 0 && typeof transfer.animate === 'function' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const previous = steps[cursor - 1];
+    const inserting = mode === 'push' && previous.incoming !== undefined && frame.incoming === undefined;
+    const returning = mode !== 'push' && frame.returned !== undefined && previous.returned === undefined;
+    const index = inserting ? frame.active : previous.active;
+    const cell = $('#stack-cells').children[index];
+    if ((inserting || returning) && cell) {
+      const from = (inserting ? transfer : cell).getBoundingClientRect();
+      const to = (inserting ? cell : transfer).getBoundingClientRect();
+      const moving = inserting ? cell.children[1] : transfer;
+      moving.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px)`, opacity: .5 }, { transform: 'translate(0, 0)', opacity: 1 }], {duration: 400, easing: 'ease-out'});
+    }
+  }
+  lastRenderedCursor = frame ? cursor : -1;
   $('#array-code').textContent = frame?.code || `stack = [${values.join(', ')}]`;
-  $('#array-message').textContent = frame?.message || '연산 시작 후 2초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능';
+  $('#array-message').textContent = frame?.message || '연산 시작 후 1초 간격 자동 진행 · 좌우 버튼으로 단계 이동 가능';
   $('.array-feedback').setAttribute('data-state', frame?.status || 'normal');
   $('#step-controls').hidden = !steps.length;
   $('#step-count').textContent = `${cursor + 1} / ${steps.length}`;
@@ -44,9 +67,10 @@ function render() {
   $('#step-status').textContent = locked ? '자동 진행' : frame?.status === 'error' ? '연산 중단' : '진행 완료';
   const fill = document.createElement('span');fill.className = locked ? 'step-progress-fill running' : 'step-progress-fill complete';
   $('#step-progress').replaceChildren(fill);
-  $('#step-progress').setAttribute('aria-label', locked ? '다음 단계까지 2초 · 자동 진행 중' : '진행 종료');
+  $('#step-progress').setAttribute('aria-label', locked ? '다음 단계까지 1초 · 자동 진행 중' : '진행 종료');
   $('#stack-value').disabled = locked || mode !== 'push';
-  $('#stack-run').disabled = locked;
+  $('#stack-run').textContent = locked ? '↺ 초기화' : steps.length ? '다시 시작' : '시작';
+  $('#stack-run').type = locked ? 'button' : 'submit';
   $('#range-hint').textContent = locked ? '단계 진행 중 · 초기화 또는 탭 전환 시 미완료 연산 취소' : mode === 'push' ? (current.length === StackModel.capacity ? '가득 찬 스택 · 실행 시 용량 초과 표시' : '삽입 값 -999–999 · 정수') : !current.length ? '빈 스택 · 실행 시 Stack underflow 표시' : mode === 'pop' ? '가장 위 원소 반환 후 제거' : '가장 위 원소만 조회 · 데이터 유지';
 }
 function changeMode(next) {
@@ -55,7 +79,7 @@ function changeMode(next) {
   $('#stack-panel').setAttribute('aria-labelledby', `tab-${mode}`);
   const [title, description, action, complexity, explanation] = content[mode];
   $('#concept-title').textContent = title;$('#concept-description').textContent = description;
-  $('#stack-run').textContent = action;$('#complexity-title').textContent = complexity;$('#complexity-description').textContent = explanation;
+  $('#complexity-title').textContent = complexity;$('#complexity-description').textContent = explanation;
   $('#stack-value-label').hidden = mode !== 'push';$('#stack-value').required = mode === 'push';
   $('#stack-error').textContent = '';render();
 }
@@ -81,5 +105,7 @@ function moveStep(offset) {
 $('#step-prev').addEventListener('click', () => moveStep(-1));
 $('#step-next').addEventListener('click', () => moveStep(1));
 $('#stack-form').addEventListener('invalid', () => {$('#stack-error').textContent = '값은 -999부터 999까지의 정수로 입력';}, true);
-$('#stack-reset').addEventListener('click', () => {values = [12,24,36];steps = [];cursor = 0;$('#stack-value').value = 99;changeMode(mode);});
+$('#stack-run').addEventListener('click', event => { if (steps.length && cursor < steps.length - 1) { event.preventDefault(); reset(); } });
+function reset() {player.stop();values = [12,24,36];steps = [];cursor = 0;$('#stack-value').value = 99;changeMode(mode);}
 changeMode('peek');
+

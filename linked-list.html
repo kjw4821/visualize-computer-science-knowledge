@@ -12,7 +12,7 @@
 </head>
 <body>
   <header><a class="brand" href="index.html">CS Knowledge</a></header>
-  <main class="structures-page array-page">
+  <main class="structures-page array-page linked-list-page">
     <nav class="breadcrumb" aria-label="현재 위치"><a href="index.html">과목 목록</a><span aria-hidden="true">/</span><a href="data-structures.html">자료구조</a><span aria-hidden="true">/</span><span aria-current="page">연결 리스트</span></nav>
     <div class="subject-intro"><p class="subject-label">DATA STRUCTURES / LINKED LIST</p><h1>연결 리스트 <span class="english-title">Linked List</span></h1><p>각 노드가 다음 노드를 가리키며 연결</p></div>
     <div class="array-tabs" role="tablist" aria-label="연결 리스트 학습 주제">
@@ -22,21 +22,21 @@
     </div>
     <section id="list-panel" role="tabpanel" aria-labelledby="tab-search" tabindex="0">
       <div class="array-concept"><h2 id="concept-title">HEAD부터 next를 따라 순차 탐색</h2><p id="concept-description">노드는 데이터와 다음 노드의 참조로 구성 · 마지막 노드의 next는 null</p></div>
-      <div class="array-visual">
-        <div class="visual-heading"><span>SINGLY LINKED LIST</span><button id="list-reset" class="reset-button" type="button">↺ 초기화</button></div>
-        <div class="list-scroll"><svg id="list-diagram" role="img" aria-label="연결 리스트의 노드와 next 참조"></svg></div>
-        <div class="array-meta"><span id="list-size">노드 수 4</span><span>화살표는 next 참조 · 노드 ID는 메모리 주소가 아닌 식별자</span></div>
-      </div>
       <form id="list-form" class="array-controls">
-        <label>위치 <input id="list-index" type="number" value="2" step="1" required></label>
+        <label><span id="list-index-label">탐색 위치</span> <input id="list-index" type="number" value="2" step="1" required></label>
         <label id="list-value-label" hidden>값 <input id="list-value" type="number" min="-999" max="999" value="99" step="1"></label>
         <button id="list-run" class="close" type="submit">탐색 시작</button><span id="range-hint">위치는 0부터 시작 · 순서를 세기 위한 번호</span>
       </form>
+      <div class="array-visual">
+        <div class="visual-heading"><span>SINGLY LINKED LIST</span><button id="list-reset" class="reset-button" type="button">시작</button></div>
+        <div class="list-scroll"><svg id="list-diagram" role="img" aria-label="연결 리스트의 노드와 next 참조"></svg></div>
+        <div class="array-meta"><span id="list-size">노드 수 4</span><span>화살표는 next 참조 · 노드 ID는 메모리 주소가 아닌 식별자</span></div>
+      </div>
       <p id="list-error" class="list-error" role="alert"></p>
-      <div class="array-feedback" aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">head → 12 → 24 → 36 → 48 → null</code><p id="array-message">위치 입력 후 탐색 시작 · 2초 간격으로 next 참조를 따라 이동</p></div>
+      <div class="array-feedback" hidden aria-live="polite" aria-atomic="true"><span class="feedback-label">현재 동작</span><code id="array-code">head → 12 → 24 → 36 → 48 → null</code><p id="array-message">위치 설정 후 시작</p></div>
       <div class="step-controls" id="step-controls" hidden>
         <button id="step-prev" type="button" aria-label="이전 단계">←</button>
-        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 2초"><span class="step-progress-fill"></span></div></div>
+        <div class="step-playback"><div class="step-caption"><span id="step-count"></span><span id="step-status">자동 진행</span></div><div id="step-progress" class="step-progress" role="img" aria-label="다음 단계까지 1초"><span class="step-progress-fill"></span></div></div>
         <button id="step-next" type="button" aria-label="다음 단계">→</button>
       </div>
       <aside class="complexity-note"><strong id="complexity-title">탐색 O(n)</strong><p id="complexity-description">HEAD에서 시작해 원하는 위치까지 next를 따라 이동</p></aside>

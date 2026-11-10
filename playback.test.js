@@ -6,7 +6,7 @@ const vm = require('node:vm');
 function harness(name) {
   let now = 0, serial = 0;
   const timers = new Map(), elements = new Map();
-  function element() { return {dataset:{},style:{},handlers:{},value:'99',children:[],setAttribute(k,v){this[k]=v},removeAttribute(k){delete this[k]},addEventListener(k,f){this.handlers[k]=f},replaceChildren(...nodes){this.children=nodes},append(...nodes){this.children.push(...nodes)},focus(){}}; }
+  function element() { return {dataset:{},style:{},handlers:{},value:'99',children:[],reportValidity(){return true},setAttribute(k,v){this[k]=v},removeAttribute(k){delete this[k]},addEventListener(k,f){this.handlers[k]=f},replaceChildren(...nodes){this.children=nodes},append(...nodes){this.children.push(...nodes)},focus(){}}; }
   const modes = name === 'heap' ? ['peek','insert','extract'] : name === 'graph' ? ['bfs','dfs','edit'] : name === 'queue' ? ['peek','enqueue','dequeue'] : name === 'stack' ? ['peek','push','pop'] : name === 'array' ? ['structure','multi'] : ['search','insert','delete'];
   const tabs=modes.map(mode=>{const e=element();e.dataset.mode=mode;return e;});
   const document={querySelector(s){if(!elements.has(s))elements.set(s,element());return elements.get(s)},querySelectorAll(){return tabs},createElement:element,createElementNS:element};
@@ -18,16 +18,16 @@ function harness(name) {
   return {get,timers,context,
     mode(mode){tabs[modes.indexOf(mode)].handlers.click();},
     run(index=1){if(name==='array'){get('#array-reset').handlers.click();return;}get(`#${prefix}-index`).value=String(index);get(`#${prefix}-form`).handlers.submit({preventDefault(){}});},
-    reset(){get(`#${prefix}-reset`).handlers.click();},
+    reset(){if (name === 'stack' || name === 'queue') { vm.runInContext('reset()', context); return; } get(`#${prefix}-reset`).handlers.click();},
     advance(ms){const end=now+ms;while(true){const next=[...timers].sort((a,b)=>a[1].time-b[1].time)[0];if(!next || next[1].time>end)break;timers.delete(next[0]);now=next[1].time;next[1].fn();}now=end;}
   };
 }
 for (const name of ['linked-list']) {
-  test(`${name}: automatic steps wait 2000ms, complete and preserve edits`,()=>{
+  test(`${name}: automatic steps wait 1000ms, complete and preserve edits`,()=>{
     const h=harness(name);h.mode('insert');h.run();
     const first=h.get('#step-count').textContent;
     assert.equal(h.timers.size,1);
-    h.advance(1999);assert.equal(h.get('#step-count').textContent,first);
+    h.advance(999);assert.equal(h.get('#step-count').textContent,first);
     h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
     h.advance(60000);assert.equal(h.get('#step-status').textContent,'진행 완료');assert.equal(h.timers.size,0);
     h.mode(name==='array'?'access':'search');assert.match(h.get('#array-code').textContent,/12.*99.*24/);
@@ -93,7 +93,7 @@ for (const name of ['array','linked-list']) {
     assert.equal(h.get('#step-prev').disabled,true);
     assert.equal(h.get('#step-next').disabled,false);
     assert.match(h.get('#step-progress').children[0].className,/running/);
-    const interval = name === 'array' ? 1000 : 2000;
+    const interval = 1000;
     h.advance(interval - 500);
     h.get('#step-next').handlers.click();
     const manual=h.get('#step-count').textContent;
@@ -123,14 +123,14 @@ for (const name of ['array','linked-list']) {
 
 test('stack: timed push, manual replay, peek and pop preserve LIFO',()=>{
   const h=harness('stack');h.mode('push');h.run();
-  assert.equal(h.get('#stack-run').disabled,true);
-  const first=h.get('#step-count').textContent;h.advance(1999);assert.equal(h.get('#step-count').textContent,first);
+  assert.equal(h.get('#stack-run').textContent,'↺ 초기화');
+  const first=h.get('#step-count').textContent;h.advance(999);assert.equal(h.get('#step-count').textContent,first);
   h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
   h.get('#step-prev').handlers.click();assert.equal(h.timers.size,1);
-  h.get('#step-next').handlers.click();h.advance(2000);
+  h.get('#step-next').handlers.click();h.advance(1000);
   assert.equal(h.get('#stack-top').textContent,3);assert.equal(h.timers.size,0);
   assert.match(h.get('#step-progress').children[0].className,/complete/);
-  h.mode('peek');h.run();h.advance(2000);assert.match(h.get('#array-code').textContent,/99/);
+  h.mode('peek');h.run();h.advance(1000);assert.match(h.get('#array-code').textContent,/99/);
   h.mode('pop');h.run();h.advance(60000);assert.match(h.get('#array-code').textContent,/99/);
   assert.equal(h.get('#stack-top').textContent,2);
   h.mode('peek');assert.doesNotMatch(h.get('#array-code').textContent,/99/);
@@ -150,10 +150,10 @@ test('stack: overflow, underflow, reset and cancelled previews',()=>{
 
 test('queue: FIFO, timed and manual steps, progress and front/rear updates',()=>{
   const h=harness('queue');h.mode('enqueue');h.run();
-  const first=h.get('#step-count').textContent;h.advance(1999);assert.equal(h.get('#step-count').textContent,first);
+  const first=h.get('#step-count').textContent;h.advance(999);assert.equal(h.get('#step-count').textContent,first);
   h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
   h.get('#step-prev').handlers.click();assert.equal(h.timers.size,1);
-  h.get('#step-next').handlers.click();h.advance(2000);
+  h.get('#step-next').handlers.click();h.advance(1000);
   assert.equal(h.get('#queue-front').textContent,12);assert.equal(h.get('#queue-rear').textContent,99);
   assert.match(h.get('#step-progress').children[0].className,/complete/);assert.equal(h.timers.size,0);
   h.mode('peek');h.run();h.advance(60000);assert.match(h.get('#array-code').textContent,/12/);
@@ -283,3 +283,84 @@ test('multidimensional: matched spatial and memory states, row and layer boundar
   assert.equal(h.timers.size, 0);assert.equal(h.get('#array-memory').hidden, true);
   h.run();assert.equal(h.get('#step-count').textContent, '1 / 7');
 });
+
+
+test('linked-list: search uses unified start, one-second playback and cancellation', () => {
+  const h = harness('linked-list');
+  assert.equal(h.get('.array-feedback').hidden, true);
+  assert.equal(h.get('#list-reset').textContent, '시작');
+  h.get('#list-index').value = '2';h.reset();
+  assert.equal(h.get('#list-reset').textContent, '↺ 초기화');
+  assert.equal(h.get('#step-count').textContent, '1 / 4');
+  assert.equal(h.get('#list-index').disabled, true);
+  assert.equal(h.get('#step-progress').children[0].style.animationDuration, '1000ms');
+  h.advance(999);assert.equal(h.get('#step-count').textContent, '1 / 4');
+  h.advance(1);assert.equal(h.get('#step-count').textContent, '2 / 4');
+  h.get('#step-prev').handlers.click();
+  h.advance(999);assert.equal(h.get('#step-count').textContent, '1 / 4');
+  h.advance(1);assert.equal(h.get('#step-count').textContent, '2 / 4');
+  const obsolete = [...h.timers.values()][0].fn;
+  h.reset();obsolete();h.advance(10000);
+  assert.equal(h.timers.size, 0);assert.equal(h.get('.array-feedback').hidden, true);
+  assert.equal(h.get('#step-controls').hidden, true);
+  h.get('#list-index').value = '10';h.reset();h.advance(10000);
+  assert.match(h.get('#array-code').textContent, /null/);
+  assert.equal(h.get('#list-reset').textContent, '다시 시작');
+  assert.equal(h.get('#list-index').disabled, false);
+  h.reset();assert.equal(h.get('#step-count').textContent, '1 / 6');
+  h.mode('insert');h.advance(10000);assert.equal(h.timers.size, 0);
+});
+
+
+test('linked-list: search keeps SVG elements through forward, backward and null steps', () => {
+  const h = harness('linked-list');
+  const diagram = h.get('#list-diagram');
+  const initial = [...diagram.children];
+  h.run(10);
+  assert.deepEqual(diagram.children, initial);
+  const pointer = diagram.children.find(child => child.class === 'list-current');
+  assert.equal(pointer.style.transform, 'translateX(170px)');
+  h.advance(1000);
+  assert.equal(pointer.style.transform, 'translateX(335px)');
+  h.get('#step-prev').handlers.click();
+  assert.equal(pointer.style.transform, 'translateX(170px)');
+  h.advance(10000);
+  assert.equal(pointer.style.transform, 'translateX(805px)');
+  assert.match(pointer.class, /error/);
+  assert.deepEqual(diagram.children, initial);
+  h.get('#step-prev').handlers.click();h.reset();
+  assert.equal(pointer.style.opacity, '0');
+  assert.equal(h.timers.size, 0);
+});
+
+
+for (const mode of ['insert', 'delete']) {
+  for (const index of (mode === 'insert' ? [0, 2, 4] : [0, 2, 3])) {
+    test(`linked-list: ${mode} at ${index} keeps nodes and unified playback`, () => {
+      const h = harness('linked-list');h.mode(mode);
+      const svg = h.get('#list-diagram');
+      const original = svg.children.filter(child => child.class === 'list-node');
+      h.get('#list-index').value = String(index);h.reset();
+      assert.equal(h.get('#list-reset').textContent, '↺ 초기화');
+      assert.equal(h.get('#step-progress').children[0].style.animationDuration, '1000ms');
+      const first = h.get('#step-count').textContent;
+      h.advance(999);assert.equal(h.get('#step-count').textContent, first);
+      h.advance(1);assert.notEqual(h.get('#step-count').textContent, first);
+      h.get('#step-prev').handlers.click();
+      assert.equal(h.get('#step-count').textContent, first);
+      original.forEach(node => assert.ok(svg.children.includes(node)));
+      h.advance(10000);
+      assert.equal(h.get('#list-reset').textContent, '다시 시작');
+      assert.equal(h.get('#list-index').disabled, false);
+      assert.equal(h.timers.size, 0);
+      assert.equal(h.get('#list-size').textContent, `연결된 노드 수 ${mode === 'insert' ? 5 : 3}`);
+      h.get('#step-prev').handlers.click();
+      original.forEach(node => assert.ok(svg.children.includes(node)));
+      const obsolete = [...h.timers.values()][0].fn;
+      h.reset();obsolete();h.advance(10000);
+      assert.equal(h.get('#list-size').textContent, '연결된 노드 수 4');
+      assert.equal(h.get('.array-feedback').hidden, true);
+      assert.equal(h.timers.size, 0);
+    });
+  }
+}
