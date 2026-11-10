@@ -22,10 +22,11 @@
     </div>
     <section id="queue-panel" role="tabpanel" aria-labelledby="tab-peek" tabindex="0">
       <div class="array-concept"><h2 id="concept-title">FRONT에서 가장 먼저 들어온 원소 조회</h2><p id="concept-description">뒤쪽 REAR에서 삽입 · 앞쪽 FRONT에서 꺼내기 · Peek는 값만 조회</p></div>
-      <div class="array-visual">
+      <div class="array-visual"><svg class="transfer-connector" id="queue-connector" aria-hidden="true"><defs><marker id="queue-arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#a58abd"/></marker></defs><path id="queue-direction" class="transfer-edge" marker-end="url(#queue-arrowhead)"/></svg>
         <div class="visual-heading"><span>QUEUE / FIRST IN, FIRST OUT</span><button id="queue-run" class="reset-button" type="submit" form="queue-form">시작</button></div>
         <div class="queue-scroll"><div class="queue-row" id="queue-cells" aria-label="큐의 논리적 순서"></div></div>
-        <div class="queue-inspector"><span>FRONT 값 <strong id="queue-front">12</strong></span><span>REAR 값 <strong id="queue-rear">36</strong></span><span class="transfer-area">이동 값 <strong id="queue-transfer" class="transfer-box" aria-live="polite">—</strong></span></div>
+        <div class="queue-transfer-path"><span class="transfer-area">이동 값 <strong id="queue-transfer" class="transfer-box" aria-live="polite">—</strong></span></div>
+        <div class="queue-inspector"><span>FRONT 값 <strong id="queue-front">12</strong></span><span>REAR 값 <strong id="queue-rear">36</strong></span></div>
         <div class="array-meta"><span id="queue-size">원소 수 3 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>
       </div>
       <form id="queue-form" class="array-controls">

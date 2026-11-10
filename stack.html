@@ -22,7 +22,7 @@
     </div>
     <section id="stack-panel" role="tabpanel" aria-labelledby="tab-peek" tabindex="0">
       <div class="array-concept"><h2 id="concept-title">TOP에서 가장 최근 원소 조회</h2><p id="concept-description">삽입과 꺼내기는 TOP에서만 진행 · Peek는 원소를 제거하지 않고 값만 조회</p></div>
-      <div class="array-visual">
+      <div class="array-visual"><svg class="transfer-connector" id="stack-connector" aria-hidden="true"><defs><marker id="stack-arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#a58abd"/></marker></defs><path id="stack-direction" class="transfer-edge" marker-end="url(#stack-arrowhead)"/></svg>
         <div class="visual-heading"><span>STACK / LAST IN, FIRST OUT</span><button id="stack-run" class="reset-button" type="submit" form="stack-form">시작</button></div>
         <div class="stack-scene"><div class="stack-tower" id="stack-cells" aria-label="스택 상태"></div><div class="stack-inspector"><span class="stack-inspector-label">TOP</span><strong id="stack-top">2</strong><p>가장 위 원소의 위치<br>빈 스택에서는 -1</p><div class="transfer-area"><span>이동 값</span><div id="stack-transfer" class="stack-transfer transfer-box" aria-live="polite">—</div></div></div></div>
         <div class="array-meta"><span id="stack-size">원소 수 3 / 용량 6</span><div><span class="legend-filled">저장된 원소</span><span class="legend-empty">빈칸</span></div></div>

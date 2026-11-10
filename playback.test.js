@@ -364,3 +364,56 @@ for (const mode of ['insert', 'delete']) {
     });
   }
 }
+for (const name of ['stack', 'queue']) {
+  test(`${name}: value motion leaves connector boxes fixed and cancels on reset`, () => {
+    const h = harness(name);
+    h.context.window = {matchMedia: () => ({matches: false})};
+    const rect = {left: 20, right: 80, top: 30, bottom: 90, width: 60, height: 60};
+    const transfer = h.get(`#${name}-transfer`);
+    transfer.getBoundingClientRect = () => rect;
+    h.get(`#${name}-connector`).getBoundingClientRect = () => ({left: 0, top: 0});
+    let animated = null, cancelled = 0;
+    const label = transfer.children[0];
+    label.animate = function() { animated = this; return {cancel() { cancelled++; }}; };
+    transfer.animate = () => { throw new Error('The transfer box must stay fixed'); };
+    const cells = h.get(`#${name}-cells`).children;
+    cells.forEach(cell => {
+      cell.children[1].getBoundingClientRect = () => rect;
+      cell.children[1].animate = () => { throw new Error('A data box must stay fixed'); };
+      cell.children[1].children[0].animate = label.animate;
+    });
+    h.mode('peek'); h.run(); h.advance(1000);
+    assert.equal(animated, label);
+    const path = h.get(`#${name}-direction`).d;
+    vm.runInContext('updateTransferArrow()', h.context);
+    assert.equal(h.get(`#${name}-direction`).d, path);
+    h.reset();
+    assert.equal(cancelled, 1);
+    h.mode(name === 'stack' ? 'push' : 'enqueue'); h.run(); h.advance(2000);
+    assert.equal(animated, cells[3].children[1].children[0]);
+  });
+}
+
+for (const name of ['stack', 'queue']) {
+  test(`${name}: transfer label replaces the initial placeholder`, () => {
+    const h = harness(name);
+    const transfer = h.get(`#${name}-transfer`);
+    transfer.children = [];
+    transfer.textContent = '—';
+    const replace = transfer.replaceChildren;
+    let replacements = 0;
+    transfer.replaceChildren = function(...nodes) {
+      replacements++;
+      this.textContent = '';
+      replace.apply(this, nodes);
+    };
+    h.mode('peek'); h.run(); h.advance(1000);
+    assert.equal(replacements, 1);
+    assert.equal(transfer.textContent, '');
+    assert.equal(transfer.children.length, 1);
+    assert.equal(transfer.children[0].textContent, name === 'stack' ? 36 : 12);
+    h.reset();
+    assert.equal(transfer.children[0].textContent, '—');
+    assert.equal(replacements, 1);
+  });
+}
