@@ -35,7 +35,7 @@ const TreeModel = (() => {
       const n = node(current);visited.push(current);
       if (value === n.value) {add(`값 ${value} 발견`, `${value} = ${n.value}`, [current]);break;}
       side = value < n.value ? 'left' : 'right';parent = current;
-      add(`${value} ${side === 'left' ? '<' : '>'} ${n.value} · ${side === 'left' ? '왼쪽' : '오른쪽'} 자식 선택`, `current = current.${side}`, [current]);
+      add(`${value} ${side === 'left' ? '<' : '>'} ${n.value} · ${side === 'left' ? '왼쪽' : '오른쪽'} 자식 선택`, `current = current.${side}`, [current], {move: n[side] ? {from: current, to: n[side]} : null});
       current = n[side];
       add(current ? `다음 노드 ${node(current).value}로 이동` : '자식 참조가 null · 탐색 경로 끝', current ? `current.data = ${node(current).value}` : 'current = null', current ? [current] : []);
     }
@@ -55,10 +55,12 @@ const TreeModel = (() => {
     } else {
       const target = node(current);
       if (target.left && target.right) {
-        add('자식 2개 · 오른쪽 서브트리에서 최솟값인 후속자 탐색', 'successor = current.right', [current, target.right]);
+        add('자식 2개 · 오른쪽 서브트리에서 최솟값인 후속자 탐색', 'successor = current.right', [current, target.right], {move: {from: current, to: target.right}});
         let successorParent = current, successor = target.right;
         while (node(successor).left) {
-          successorParent = successor;successor = node(successor).left;
+          successorParent = successor;
+          add('다음 왼쪽 자식으로 이동 준비', 'successor = successor.left', [successor], {move: {from: successor, to: node(successor).left}});
+          successor = node(successor).left;
           add('후속자를 찾기 위해 왼쪽 자식으로 이동', 'successor = successor.left', [successor]);
         }
         const replacement = node(successor);

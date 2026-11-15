@@ -17,3 +17,20 @@ test('heap lookup, limits, empty state and invalid input',()=>{
   assert.equal(model.frames(Array(15).fill(0),'insert',9).at(-1).status,'error');
   for(const value of [NaN,Infinity,0.5,1000])assert.throws(()=>model.frames([],'insert',value));
 });
+
+test('heap movement marks swaps and last-node relocation only on movement frames',()=>{
+  for(const mode of ['insert','extract']){
+    const frames=model.frames(model.create(),mode,1);
+    const moves=frames.filter(f=>f.move);
+    assert.ok(moves.length);
+    for(const frame of moves){
+      const {from,to,swap}=frame.move;
+      assert.notEqual(from,to);
+      if(swap){assert.match(frame.code,/swap/);assert.ok(from<frame.state.length&&to<frame.state.length);}
+      else {assert.equal(mode,'extract');assert.equal(from,6);assert.equal(to,0);}
+    }
+    assert.equal(frames.at(-1).move,undefined);
+  }
+  for(const [data,mode,value] of [[[10],'insert',20],[[10],'extract'],[[],'peek']])
+    assert.ok(model.frames(data,mode,value).every(f=>!f.move));
+});

@@ -1,5 +1,7 @@
 'use strict';
+const hashRows=[],hashCards=new Map();
 mountLesson({
+  unified:true, interval:2000, defaults:{'hash-key':17,'hash-value':99},
   create:HashTableModel.create,clone:HashTableModel.clone,summary:s=>`buckets = 7 · entries = ${HashTableModel.size(s)}`,
   fields:[{id:'hash-key',modes:['search','insert','delete']},{id:'hash-value',modes:['insert']}],
   validation:'키와 값은 -999부터 999까지의 정수로 입력',
@@ -10,20 +12,34 @@ mountLesson({
     delete:{title:'키를 찾아 체인에서 항목 제거',description:'해시값으로 버킷 선택 · 일치하는 키만 제거하고 다른 항목 유지',action:'삭제 시작',complexity:'평균 O(1 + α) · 최악 O(n)',explanation:'체인에서 일치하는 항목 탐색 후 연결 변경',hint:'없는 키는 테이블을 변경하지 않음'}
   },
   draw(state,frame){
-    document.querySelector('#hash-buckets').replaceChildren(...state.map((chain,index)=>{
-      const row=document.createElement('div');row.className=`hash-row${frame?.bucket===index?' selected':''}`;
-      const label=document.createElement('span');label.className='hash-index';label.textContent=`[${index}]`;
-      const list=document.createElement('div');list.className='hash-chain';
-      chain.forEach(entry=>{
-        const arrow=document.createElement('span');arrow.className='hash-arrow';arrow.textContent='→';arrow.setAttribute('aria-hidden','true');
-        const card=document.createElement('div');card.className=`hash-entry${frame?.visited.includes(entry.key)?' visited':''}${frame?.activeKey===entry.key?' active':''}`;
-        const key=document.createElement('span');key.textContent=`key ${entry.key}`;
-        const value=document.createElement('strong');value.textContent=`value ${entry.value}`;
-        card.setAttribute('aria-label',`키 ${entry.key}, 값 ${entry.value}`);card.append(key,value);list.append(arrow,card);
+    const root=document.querySelector('#hash-buckets');
+    if(!hashRows.length){
+      state.forEach((chain,index)=>{
+        const row=document.createElement('div'),label=document.createElement('span'),list=document.createElement('div'),end=document.createElement('span');
+        label.className='hash-index';label.textContent=`[${index}]`;list.className='hash-chain';end.className='hash-null';end.textContent='→ null';
+        list.append(end);row.append(label,list);root.append(row);hashRows.push({row,list,end});
       });
-      const end=document.createElement('span');end.className='hash-null';end.textContent='→ null';list.append(end);
-      row.setAttribute('aria-label',`버킷 ${index} · ${chain.length}개 항목`);row.append(label,list);return row;
-    }));
+    }
+    const live=new Set();
+    state.forEach((chain,index)=>{
+      const {row,list,end}=hashRows[index];row.className=`hash-row${frame?.bucket===index?' selected':''}`;
+      row.setAttribute('aria-label',`버킷 ${index} · ${chain.length}개 항목`);
+      const nodes=[];
+      chain.forEach(entry=>{
+        live.add(entry.key);let item=hashCards.get(entry.key);
+        if(!item){
+          const arrow=document.createElement('span'),card=document.createElement('div'),key=document.createElement('span'),value=document.createElement('strong');
+          arrow.textContent='→';arrow.setAttribute('aria-hidden','true');card.append(key,value);item={arrow,card,key,value};hashCards.set(entry.key,item);
+        }
+        item.arrow.className=`hash-arrow${frame?.activeKey===entry.key?' hash-arrow-active':''}`;
+        item.card.className=`hash-entry${frame?.visited.includes(entry.key)?' visited':''}${frame?.activeKey===entry.key?' active':''}`;
+        item.key.textContent=`key ${entry.key}`;item.value.textContent=`value ${entry.value}`;item.card.setAttribute('aria-label',`키 ${entry.key}, 값 ${entry.value}`);
+        nodes.push(item.arrow,item.card);
+      });
+      const signature=chain.map(e=>e.key).join(',');
+      if(row.dataset.keys!==signature){list.replaceChildren(...nodes,end);row.dataset.keys=signature;}
+    });
+    for(const key of hashCards.keys())if(!live.has(key))hashCards.delete(key);
     const count=HashTableModel.size(state);
     document.querySelector('#lesson-size').textContent=`버킷 7개 · 항목 ${count}개 / 학습용 최대 12개`;
     document.querySelector('#lesson-summary').textContent=`부하율 α = ${count}/7 ≈ ${(count/7).toFixed(2)}`;

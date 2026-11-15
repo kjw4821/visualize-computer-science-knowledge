@@ -1,31 +1,41 @@
 'use strict';
-mountLesson({
-  create:GraphModel.create,clone:GraphModel.clone,summary:s=>`V = ${s.nodes.length} · E = ${s.edges.length}`,
-  fields:[{id:'graph-start',modes:['bfs','dfs']},{id:'graph-from',modes:['edit']},{id:'graph-to',modes:['edit']},{id:'graph-action',modes:['edit']}],
-  validation:'정점과 간선 연산을 선택',frames:(state,mode,args)=>GraphModel.frames(state,mode,{start:args['graph-start'],from:args['graph-from'],to:args['graph-to'],action:args['graph-action']}),
-  modes:{
-    bfs:{title:'가까운 정점부터 너비 우선 탐색',description:'큐를 사용해 발견한 이웃을 예약 · 큐에서 꺼낸 순서대로 처리',action:'BFS 시작',complexity:'BFS O(V + E)',explanation:'인접 리스트 기준 · 도달 가능한 정점과 연결된 간선을 확인',hint:'이웃은 알파벳 순서 · 발견 즉시 중복 예약 방지'},
-    dfs:{title:'한 경로를 따라 깊이 우선 탐색',description:'이웃을 따라 깊이 이동 · 더 갈 곳이 없으면 이전 호출로 복귀',action:'DFS 시작',complexity:'DFS O(V + E)',explanation:'인접 리스트 기준 · 재귀 호출 스택으로 경로와 복귀 표현',hint:'이웃은 알파벳 순서 · 방문한 정점은 재방문하지 않음'},
-    edit:{title:'간선을 바꿔 정점 사이의 연결 변경',description:'무방향 간선은 양쪽 정점을 연결 · 간선을 지우면 그래프가 끊어질 수 있음',action:'간선 변경',complexity:'정점 V · 간선 E',explanation:'고정 정점 6개 · 단순 무방향·비가중 그래프 예시',hint:'중복 간선·자기 루프 제외 · 정점 위치는 연결 구조와 무관'}
-  },
-  draw(state,frame,mode){
-    const svg=document.querySelector('#graph-diagram');svg.replaceChildren();svg.setAttribute('viewBox','0 0 620 310');svg.style.width='620px';
-    const positions={A:[85,145],B:[225,65],C:[225,235],D:[385,65],E:[385,235],F:[535,145]};
-    svg.setAttribute('aria-label',`무방향 그래프 · ${state.edges.map(e=>e.join('–')).join(', ')} · 처리 순서 ${(frame?.order||[]).join(', ')}`);
-    state.edges.forEach(([a,b])=>{
-      const [x1,y1]=positions[a],[x2,y2]=positions[b];
-      const active=frame?.edge?.includes(a)&&frame.edge.includes(b);
-      svg.append(lessonSvg('line',{x1,y1,x2,y2,class:`tree-edge${active?' graph-edge-active':''}`}));
+(()=>{
+  const $=s=>document.querySelector(s),state=GraphModel.create(),player=new StepPlayer(2000),tabs=[...document.querySelectorAll('[data-mode]')];
+  $('#graph-node').value='A';$('#graph-direction').value='undirected';$('#step-auto').checked=true;
+  let mode='basics',steps=[],cursor=0;
+  const info={basics:['정점과 간선, 차수','정점은 대상, 간선은 관계 · 정점을 선택해 연결된 간선과 차수 확인','정점과 간선의 개수','무방향 그래프에서 모든 정점의 차수 합은 간선 수의 두 배'],direction:['무방향·방향 그래프','같은 연결 구조에서 방향 유무를 전환 · 진입·진출 차수 비교','방향에 따른 연결 관계','방향 그래프에서 진입 차수의 합과 진출 차수의 합은 각각 간선 수와 동일'],weight:['가중치 그래프','간선에 거리·시간·비용 등의 값을 저장 · 예시는 거리(km)','가중치와 차수','차수는 연결된 간선의 개수 · 가중치는 각 연결에 부여한 값']};
+  const svgEl=(tag,attrs,text)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;return e;};
+  function render(){
+    const f=steps[cursor],node=$('#graph-node').value,directed=mode==='direction'&&$('#graph-direction').value==='directed',d=GraphModel.degree(state,node),svg=$('#graph-diagram');
+    const pos={A:[85,145],B:[225,65],C:[225,235],D:[385,65],E:[385,235],F:[535,145]};
+    svg.replaceChildren();svg.setAttribute('viewBox','0 0 620 310');svg.style.width='620px';
+    const defs=svgEl('defs',{}),marker=svgEl('marker',{id:'graph-arrow',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'});marker.append(svgEl('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'context-stroke'}));defs.append(marker);svg.append(defs);
+    const highlighted=f?.edges||state.edges.filter(e=>e[0]===node||e[1]===node);
+    state.edges.forEach(e=>{const [a,b,w]=e,[x,y]=pos[a],[u,v]=pos[b],len=Math.hypot(u-x,v-y),dx=(u-x)/len,dy=(v-y)/len,active=highlighted.some(h=>h[0]===a&&h[1]===b);
+      svg.append(svgEl('line',{x1:x+dx*27,y1:y+dy*27,x2:u-dx*29,y2:v-dy*29,class:`tree-edge${active?' graph-edge-active':''}`,...(directed?{'marker-end':'url(#graph-arrow)'}:{})}));
+      if(mode==='weight'){const t=svgEl('text',{x:(x+u)/2-dy*14,y:(y+v)/2+dx*14,'text-anchor':'middle',fill:'#69458e','font-size':14,stroke:'white','stroke-width':5,'paint-order':'stroke'},`${w} km`);svg.append(t);}
     });
-    state.nodes.forEach(id=>{
-      const [x,y]=positions[id],g=lessonSvg('g',{class:`tree-node${frame?.visited.includes(id)?' visited':''}${frame?.active.includes(id)?' active':''}`});
-      g.append(lessonSvg('circle',{cx:x,cy:y,r:25}),lessonSvg('text',{x,y:y+5,class:'tree-data'},id));svg.append(g);
-    });
-    document.querySelector('#lesson-size').textContent=`정점 ${state.nodes.length}개 · 간선 ${state.edges.length}개`;
-    document.querySelector('#lesson-summary').textContent='진한 색: 현재 대상 · 연한 색: 발견한 정점';
-    document.querySelector('#graph-order').textContent=(frame?.order||[]).join(' → ')||'—';
-    document.querySelector('#graph-frontier-title').textContent=mode==='dfs'?'호출 스택 · 오른쪽이 TOP':'대기 큐 · 왼쪽부터 처리';
-    document.querySelector('#graph-frontier').textContent=mode==='edit'?'—':`[${(frame?.frontier||[]).join(', ')}]`;
-    document.querySelector('#graph-adjacency').replaceChildren(...state.nodes.map(id=>{const li=document.createElement('li');li.textContent=`${id} → ${GraphModel.neighbors(state,id).join(', ')||'없음'}`;return li;}));
+    state.nodes.forEach(id=>{const [x,y]=pos[id],g=svgEl('g',{class:`tree-node${(f?.active||[node]).includes(id)?' active':''}`});g.append(svgEl('circle',{cx:x,cy:y,r:25}),svgEl('text',{x,y:y+5,class:'tree-data'},id));if(mode==='basics')g.append(svgEl('text',{x,y:y-36,'text-anchor':'middle',fill:'#806096','font-size':13},`차수 ${GraphModel.degree(state,id).total}`));svg.append(g);});
+    svg.setAttribute('aria-label',`${directed?'방향':'무방향'}${mode==='weight'?' 가중치':''} 그래프. ${node} 차수 ${d.total}. ${state.edges.map(([a,b,w])=>`${a}${directed?'에서':'와'} ${b}${mode==='weight'?` ${w} km`:''}`).join(', ')}`);
+    $('#graph-kind').textContent=mode==='weight'?'WEIGHTED GRAPH':directed?'DIRECTED GRAPH':'UNDIRECTED GRAPH';
+    $('#lesson-size').textContent=`정점 ${state.nodes.length}개 · 간선 ${state.edges.length}개`;
+    $('#lesson-summary').textContent='보라색: 현재 설명 중인 정점·간선';
+    $('#graph-degree').textContent=directed?`${node} · 진입 ${d.incoming} / 진출 ${d.outgoing}`:`${node} · 차수 ${d.total}`;
+    $('#graph-relation').textContent=mode==='weight'?'숫자: 두 정점 사이의 거리(km)':directed?'A → B가 있어도 B → A를 의미하지 않음':'A — B는 A와 B의 상호 연결';
+    $('#graph-list-title').textContent=directed?'진입·진출 차수':mode==='weight'?'인접 정점과 거리':'인접 정점과 차수';
+    $('#graph-adjacency').replaceChildren(...state.nodes.map(id=>{const li=document.createElement('li'),n=GraphModel.degree(state,id);li.textContent=directed?`${id} · 진입 ${n.incoming} / 진출 ${n.outgoing}`:mode==='weight'?`${id}: ${state.edges.filter(e=>e[0]===id||e[1]===id).map(([a,b,w])=>`${a===id?b:a} (${w} km)`).join(', ')}`:`${id}: ${GraphModel.neighbors(state,id).join(', ')} · 차수 ${n.total}`;return li;}));
+    $('.array-feedback').hidden=!f;$('#array-code').textContent=f?.code||'';$('#array-message').textContent=f?.message||'';
+    $('#step-controls').hidden=!f;$('#step-count').textContent=`${cursor+1} / ${steps.length}`;$('#step-prev').disabled=cursor===0;$('#step-next').disabled=cursor>=steps.length-1;
+    const running=!!f&&cursor<steps.length-1,auto=$('#step-auto').checked;
+    $('#step-status').textContent=running?(auto?'자동 진행':'수동 진행'):'설명 완료';
+    const fill=document.createElement('span');fill.className=`step-progress-fill ${running?(auto?'running':'manual'):'complete'}`;fill.style.animationDuration='2s';if(running&&!auto)fill.style.transform=`scaleX(${(cursor+1)/steps.length})`;$('#step-progress').replaceChildren(fill);$('#step-progress').setAttribute('aria-label',running?(auto?'다음 단계까지 2초':'수동 진행'):'설명 완료');
+    $('#lesson-reset').textContent=!f?'시작':running?'↻ 초기화':'다시 시작';
   }
-});
+  function play(){player.stop();if($('#step-auto').checked&&steps.length&&cursor<steps.length-1)player.play(()=>{cursor++;render();return cursor<steps.length-1;});}
+  function reset(){player.stop();steps=[];cursor=0;render();}
+  function change(next){mode=next;tabs.forEach(t=>{const yes=t.dataset.mode===mode;t.setAttribute('aria-selected',String(yes));t.tabIndex=yes?0:-1;});$('#lesson-panel').setAttribute('aria-labelledby',`tab-${mode}`);const i=info[mode];$('#concept-title').textContent=i[0];$('#concept-description').textContent=i[1];$('#complexity-title').textContent=i[2];$('#complexity-description').textContent=i[3];$('#graph-direction-field').hidden=mode!=='direction';reset();}
+  tabs.forEach((t,i)=>{t.addEventListener('click',()=>change(t.dataset.mode));t.addEventListener('keydown',e=>{const j=e.key==='ArrowRight'?(i+1)%3:e.key==='ArrowLeft'?(i+2)%3:e.key==='Home'?0:e.key==='End'?2:null;if(j!==null){e.preventDefault();change(tabs[j].dataset.mode);tabs[j].focus();}});});
+  $('#lesson-form').addEventListener('submit',e=>e.preventDefault());['#graph-node','#graph-direction'].forEach(s=>$(s).addEventListener('change',reset));
+  $('#lesson-reset').addEventListener('click',()=>{if(steps.length&&cursor<steps.length-1){reset();return;}steps=GraphModel.frames(state,mode,{node:$('#graph-node').value,directed:$('#graph-direction').value==='directed'});cursor=0;render();play();});
+  [['#step-prev',-1],['#step-next',1]].forEach(([s,delta])=>$(s).addEventListener('click',()=>{cursor+=delta;render();play();}));$('#step-auto').addEventListener('change',()=>{render();play();});change(mode);
+})();

@@ -7,7 +7,7 @@ function harness(name) {
   let now = 0, serial = 0;
   const timers = new Map(), elements = new Map();
   function element() { return {dataset:{},style:{},handlers:{},value:'99',children:[],reportValidity(){return true},setAttribute(k,v){this[k]=v},removeAttribute(k){delete this[k]},addEventListener(k,f){this.handlers[k]=f},replaceChildren(...nodes){this.children=nodes},append(...nodes){this.children.push(...nodes)},focus(){}}; }
-  const modes = name === 'heap' ? ['peek','insert','extract'] : name === 'graph' ? ['bfs','dfs','edit'] : name === 'queue' ? ['peek','enqueue','dequeue'] : name === 'stack' ? ['peek','push','pop'] : name === 'array' ? ['structure','multi'] : ['search','insert','delete'];
+  const modes = name === 'heap' ? ['peek','insert','extract'] : name === 'graph' ? ['basics','direction','weight'] : name === 'queue' ? ['peek','enqueue','dequeue'] : name === 'stack' ? ['peek','push','pop'] : name === 'array' ? ['structure','multi'] : ['search','insert','delete'];
   const tabs=modes.map(mode=>{const e=element();e.dataset.mode=mode;return e;});
   const document={querySelector(s){if(!elements.has(s))elements.set(s,element());return elements.get(s)},querySelectorAll(){return tabs},createElement:element,createElementNS:element};
   const context=vm.createContext({document,MultidimensionalArrayModel:require('./multidimensional-array-model.js'),ArrayModel:require('./array-model.js'),LinkedListModel:require('./linked-list-model.js'),StackModel:require('./stack-model.js'),QueueModel:require('./queue-model.js'),TreeModel:require('./tree-model.js'),HeapModel:require('./heap-model.js'),GraphModel:require('./graph-model.js'),HashTableModel:require('./hash-table-model.js'),setTimeout(fn,delay){const id=++serial;timers.set(id,{fn,time:now+delay});return id;},clearTimeout(id){timers.delete(id);}});
@@ -175,7 +175,7 @@ test('queue: overflow, underflow, single-node references and stale timer cancell
 
 test('tree: timed and manual comparisons, insert, two-child deletion and progress',()=>{
   const h=harness('tree');h.get('#tree-value').value='30';h.run();
-  const first=h.get('#step-count').textContent;h.advance(1999);assert.equal(h.get('#step-count').textContent,first);
+  const first=h.get('#step-count').textContent;h.advance(999);assert.equal(h.get('#step-count').textContent,first);
   h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
   h.get('#step-prev').handlers.click();assert.equal(h.timers.size,1);
   h.get('#step-next').handlers.click();h.advance(60000);assert.match(h.get('#array-code').textContent,/found/);
@@ -199,9 +199,9 @@ test('heap: shared playback, manual countdown restart, persistent extraction and
   const h=harness('heap');const run=()=>h.get('#lesson-form').handlers.submit({preventDefault(){}});
   h.mode('insert');h.get('#heap-value').value='1';run();
   assert.equal(h.get('#lesson-run').disabled,true);const first=h.get('#step-count').textContent;
-  h.advance(1999);assert.equal(h.get('#step-count').textContent,first);h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
+  h.advance(999);assert.equal(h.get('#step-count').textContent,first);h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
   h.get('#step-prev').handlers.click();assert.equal(h.timers.size,1);h.get('#step-next').handlers.click();
-  const manual=h.get('#step-count').textContent;h.advance(1999);assert.equal(h.get('#step-count').textContent,manual);
+  const manual=h.get('#step-count').textContent;h.advance(999);assert.equal(h.get('#step-count').textContent,manual);
   h.advance(60000);assert.equal(h.timers.size,0);assert.match(h.get('#step-progress').children[0].className,/complete/);
   h.mode('peek');run();assert.match(h.get('#array-code').textContent,/→ 1$/);
   h.mode('extract');run();h.advance(60000);assert.match(h.get('#lesson-summary').textContent,/1/);
@@ -210,18 +210,16 @@ test('heap: shared playback, manual countdown restart, persistent extraction and
   h.mode('peek');obsolete();assert.equal(h.timers.size,0);
   h.mode('insert');run();h.get('#lesson-reset').handlers.click();h.advance(60000);assert.equal(h.timers.size,0);assert.match(h.get('#lesson-size').textContent,/7/);
 });
-test('graph: BFS and DFS playback, edge edits and disconnected results',()=>{
-  const h=harness('graph');const run=()=>h.get('#lesson-form').handlers.submit({preventDefault(){}});
-  h.get('#graph-start').value='A';run();const first=h.get('#step-count').textContent;
-  h.advance(1999);assert.equal(h.get('#step-count').textContent,first);h.advance(1);assert.notEqual(h.get('#step-count').textContent,first);
-  h.get('#step-prev').handlers.click();h.get('#step-next').handlers.click();h.advance(120000);
-  assert.equal(h.get('#graph-order').textContent,'A → B → C → D → E → F');assert.equal(h.timers.size,0);
-  h.mode('dfs');run();h.advance(120000);assert.equal(h.get('#graph-order').textContent,'A → B → D → C → E → F');
-  h.mode('edit');h.get('#graph-from').value='E';h.get('#graph-to').value='F';h.get('#graph-action').value='remove';run();h.advance(2000);
-  assert.match(h.get('#lesson-size').textContent,/간선 5개/);
-  h.mode('bfs');run();h.advance(120000);assert.match(h.get('#array-message').textContent,/도달 불가: F/);
-  h.mode('edit');h.get('#graph-action').value='add';run();const obsolete=[...h.timers.values()][0].fn;
-  h.get('#lesson-reset').handlers.click();obsolete();h.advance(60000);assert.equal(h.timers.size,0);assert.match(h.get('#lesson-size').textContent,/간선 6개/);
+test('graph: concept playback, manual pause, direction and weight changes cancel stale timers',()=>{
+  const h=harness('graph'),run=()=>h.get('#lesson-reset').handlers.click();
+  run();assert.equal(h.get('#step-count').textContent,'1 / 3');
+  h.advance(1999);assert.equal(h.get('#step-count').textContent,'1 / 3');h.advance(1);assert.equal(h.get('#step-count').textContent,'2 / 3');
+  const obsolete=[...h.timers.values()][0].fn;
+  h.get('#step-auto').checked=false;h.get('#step-auto').handlers.change();obsolete();h.advance(10000);assert.equal(h.get('#step-count').textContent,'2 / 3');assert.equal(h.timers.size,0);
+  h.get('#step-next').handlers.click();assert.match(h.get('#array-code').textContent,/deg\(A\) = 2/);
+  h.mode('direction');h.get('#graph-node').value='C';h.get('#graph-direction').value='directed';h.get('#graph-direction').handlers.change();run();h.get('#step-next').handlers.click();assert.match(h.get('#array-code').textContent,/outdegree\(C\) = 2/);h.get('#step-next').handlers.click();assert.match(h.get('#array-code').textContent,/indegree\(C\) = 1/);
+  h.get('#step-auto').checked=true;h.get('#step-auto').handlers.change();run();const cancelled=[...h.timers.values()][0].fn;h.mode('weight');cancelled();assert.equal(h.timers.size,0);assert.equal(h.get('#step-controls').hidden,true);
+  run();h.advance(4000);assert.equal(h.get('#step-next').disabled,true);assert.equal(h.timers.size,0);assert.match(h.get('#graph-relation').textContent,/km/);
 });
 
 test('hash table: collisions, timed/manual playback, updates and deletion',()=>{
@@ -417,3 +415,89 @@ for (const name of ['stack', 'queue']) {
     assert.equal(replacements, 1);
   });
 }
+
+
+test('tree: unified button, one-second playback, stable nodes and obsolete callbacks', () => {
+  const h = harness('tree');
+  assert.equal(h.get('.array-feedback').hidden, true);
+  assert.equal(h.get('#tree-reset').textContent, '시작');
+  h.get('#tree-value').value = '25';h.mode('insert');h.reset();
+  const svg = h.get('#tree-diagram'), layers = [...svg.children];
+  const nodes = [...layers[1].children];
+  assert.equal(h.get('#tree-reset').textContent, '↺ 초기화');
+  assert.equal(h.get('#step-progress').children[0].style.animationDuration, '1000ms');
+  const first = h.get('#step-count').textContent;
+  h.advance(999);assert.equal(h.get('#step-count').textContent, first);
+  h.advance(1);assert.notEqual(h.get('#step-count').textContent, first);
+  assert.deepEqual(svg.children, layers);
+  assert.deepEqual(layers[1].children, nodes);
+  h.get('#step-prev').handlers.click();
+  const obsolete = [...h.timers.values()][0].fn;
+  h.reset();obsolete();h.advance(10000);
+  assert.equal(h.timers.size, 0);
+  assert.equal(h.get('.array-feedback').hidden, true);
+  assert.match(h.get('#tree-size').textContent, /7/);
+  h.reset();h.advance(60000);
+  assert.equal(h.get('#tree-reset').textContent, '다시 시작');
+  h.get('#step-prev').handlers.click();
+  h.advance(60000);assert.equal(h.timers.size, 0);
+});
+
+
+test('tree: manual mode cancels timers, marks the next edge and resumes a full interval', () => {
+  const h = harness('tree');h.get('#tree-value').value = '30';h.run();
+  const obsolete = [...h.timers.values()][0].fn;
+  const toggle = h.get('#step-auto');toggle.checked = false;toggle.handlers.change();
+  const first = h.get('#step-count').textContent;
+  obsolete();h.advance(60000);
+  assert.equal(h.get('#step-count').textContent, first);assert.equal(h.timers.size, 0);
+  assert.equal(h.get('#step-status').textContent, '수동 진행');
+  h.get('#step-next').handlers.click();
+  const edges = h.get('#tree-diagram').children[0].children;
+  assert.ok(edges.some(edge => edge['marker-end'] === 'url(#tree-move-arrow)' && /moving/.test(edge.class)));
+  const manual = h.get('#step-count').textContent;
+  h.advance(60000);assert.equal(h.get('#step-count').textContent, manual);
+  assert.equal(h.timers.size, 0);
+  toggle.checked = true;toggle.handlers.change();
+  h.advance(999);assert.equal(h.get('#step-count').textContent, manual);
+  h.advance(1);assert.notEqual(h.get('#step-count').textContent, manual);
+  assert.ok(!edges.some(edge => edge['marker-end']));
+  h.advance(60000);assert.equal(h.timers.size, 0);
+  toggle.checked = false;toggle.handlers.change();h.mode('insert');h.run();
+  assert.equal(h.timers.size, 0);assert.equal(toggle.checked, false);
+});
+
+test('heap: unified start, manual pause, stable nodes and timer cancellation',()=>{
+  const h=harness('heap');h.mode('insert');h.get('#heap-value').value='1';
+  h.get('#lesson-reset').handlers.click();
+  const svg=h.get('#heap-diagram'), node=svg.children[1];
+  h.advance(1000);assert.equal(svg.children[1],node);
+  const obsolete=[...h.timers.values()][0].fn;
+  h.get('#step-auto').checked=false;h.get('#step-auto').handlers.change();
+  const paused=h.get('#step-count').textContent;obsolete();h.advance(5000);
+  assert.equal(h.get('#step-count').textContent,paused);assert.equal(h.timers.size,0);
+  h.get('#step-next').handlers.click();assert.equal(h.timers.size,0);
+  h.get('#step-auto').checked=true;h.get('#step-auto').handlers.change();
+  assert.equal(h.timers.size,1);h.get('#lesson-reset').handlers.click();
+  assert.equal(h.timers.size,0);assert.equal(h.get('.array-feedback').hidden,true);
+});
+
+
+test('hash-table: unified controls, manual pause, stable cards and cancelled reset',()=>{
+  const h=harness('hash-table');h.get('#hash-key').value='24';
+  h.get('#lesson-reset').handlers.click();
+  const row=h.get('#hash-buckets').children[3],card=row.children[1].children[1];
+  assert.equal(h.timers.size,1);
+  h.get('#step-auto').checked=false;h.get('#step-auto').handlers.change();
+  const first=h.get('#step-count').textContent;h.advance(10000);
+  assert.equal(h.get('#step-count').textContent,first);assert.equal(h.timers.size,0);
+  h.get('#step-next').handlers.click();
+  assert.equal(row.children[1].children[1],card);
+  h.get('#step-auto').checked=true;h.get('#step-auto').handlers.change();
+  h.advance(1999);const before=h.get('#step-count').textContent;
+  h.advance(1);assert.notEqual(h.get('#step-count').textContent,before);
+  const obsolete=[...h.timers.values()][0].fn;
+  h.get('#lesson-reset').handlers.click();obsolete();h.advance(10000);
+  assert.equal(h.timers.size,0);assert.equal(h.get('#step-controls').hidden,true);
+  assert.equal(h.get('#hash-key').value,17);assert.equal(h.get('#hash-value').value,99);
+});

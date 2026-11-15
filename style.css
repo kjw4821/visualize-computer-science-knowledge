@@ -402,3 +402,44 @@ dialog form { margin-top: 24px; text-align: right; }
 @media (max-width: 600px) { .stack-scene { gap: 38px; } }
 
 .stack-block > span, .queue-cell .cell-value > span, .transfer-box > span { display: inline-block; }
+
+/* Tree playback preserves node identity between frames. */
+.tree-page .tree-node { transition: transform .4s ease, opacity .35s ease; }
+.tree-page .tree-node circle, .tree-page .tree-data { transition: fill .35s ease, stroke .35s ease; }
+.tree-page .tree-edge { transition: x1 .4s ease, y1 .4s ease, x2 .4s ease, y2 .4s ease, opacity .35s ease; }
+.tree-page .tree-side { transition: x .4s ease, y .4s ease, opacity .35s ease; }
+.tree-page .array-feedback code, .tree-page .array-feedback p { font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .tree-page .tree-node, .tree-page .tree-node circle, .tree-page .tree-data,
+  .tree-page .tree-edge, .tree-page .tree-side { transition: none; }
+}
+
+.step-mode { display: inline-flex; align-items: center; gap: 7px; }
+.step-mode input { margin: 0; width: 16px; height: 16px; accent-color: #8550ba; cursor: pointer; }
+.tree-page .tree-edge.moving { stroke: #8550ba; stroke-width: 3; }
+.tree-page .step-progress-fill.manual { animation: none; transform-origin: left; }
+
+.heap-page .tree-node { transition: transform .4s ease, opacity .35s ease; }
+.heap-page .tree-node circle, .heap-page .tree-data, .heap-page .heap-array-cell { transition: fill .35s ease, stroke .35s ease, background-color .35s ease, color .35s ease; }
+.heap-page .tree-edge { transition: x1 .4s ease, y1 .4s ease, x2 .4s ease, y2 .4s ease, opacity .35s ease; }
+.heap-page .array-feedback code, .heap-page .array-feedback p { font-weight: 700; }
+.heap-page .step-progress-fill.manual { animation: none; transform-origin: left; }
+@media (prefers-reduced-motion: reduce) { .heap-page .tree-node, .heap-page .tree-node circle, .heap-page .tree-data, .heap-page .tree-edge, .heap-page .heap-array-cell { transition: none; } }
+
+.heap-move { stroke: #8550ba; stroke-width: 2.5; pointer-events: none; }
+.heap-move-label { fill: #75558f; text-anchor: middle; font: 700 11px ui-monospace, monospace; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+
+/* Graph controls sit immediately before the start/reset action. */
+.graph-page .visual-heading { flex-wrap: wrap; gap: 12px; }
+.graph-page .graph-heading-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; border: 0; }
+.graph-page .graph-heading-controls label { display: flex; align-items: center; gap: 6px; }
+.graph-page .graph-heading-controls [hidden] { display: none; }
+
+/* Hash table: keep entries mounted during playback. */
+.hash-row { transition: background-color .35s; }
+.hash-entry { transition: background-color .35s, border-color .35s; }
+.hash-arrow { transition: color .35s, transform .4s; }
+.hash-arrow-active { color: #7856a8; transform: translateX(3px); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) {
+  .hash-row, .hash-entry, .hash-arrow { transition: none; }
+}
