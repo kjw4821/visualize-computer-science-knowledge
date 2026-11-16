@@ -443,3 +443,17 @@ dialog form { margin-top: 24px; text-align: right; }
 @media (prefers-reduced-motion: reduce) {
   .hash-row, .hash-entry, .hash-arrow { transition: none; }
 }
+
+/* Algorithm catalogue and lesson shells */
+.algorithm-card-mark { display: grid; place-items: center; min-height: 112px; }
+.algorithm-card-mark .algorithm-big-o { font-size: 36px; }
+.algorithm-card-mark .algorithm-highlight { fill: #8965b8; stroke: #7856a8; }
+.algorithm-card-mark .algorithm-light { fill: #fff; }
+.algorithm-card-mark .algorithm-filled { fill: #e7dbf5; }
+.algorithm-card-mark .algorithm-route { stroke: #8965b8; stroke-width: 3; }
+.algorithm-lesson-page .array-tabs { overflow-x: auto; }
+.algorithm-lesson-page .array-tabs button { flex-shrink: 0; white-space: nowrap; }
+.lesson-placeholder { min-height: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 32px; text-align: center; }
+.lesson-placeholder p { margin: 0; color: #8b7a9b; font-size: 13px; line-height: 1.8; }
+.algorithm-lesson-page > .back-link { display: inline-block; margin-top: 30px; }
+@media (max-width: 640px) { .algorithm-card-mark { min-height: 100%; } .algorithm-lesson-page .english-title { display: block; margin: 10px 0 0; font-size: 17px; } .lesson-placeholder { min-height: 220px; } }
