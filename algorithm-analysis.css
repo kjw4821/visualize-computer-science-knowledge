@@ -5,3 +5,35 @@
 .analysis-bound-record h3{font-size:14px;color:var(--bound-color);margin:0 0 12px}
 .analysis-bound-record code{font-size:14px;color:#75558f;overflow-wrap:anywhere}
 .analysis-bound-record p{font-size:12px;line-height:1.7;color:#8a749c;margin:10px 0 0}
+
+.analysis-comparison-plot, .analysis-comparison-table { overflow-x: auto; }
+.analysis-scale-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #75558f;
+  font-size: 14px;
+}
+.analysis-scale-field input { width: min(52vw, 260px); accent-color: #7850a3; }
+.analysis-scale-summary { color: #75558f; font-size: 14px; margin: 8px 0 0; }
+.analysis-comparison-legend { gap: 8px; margin: 8px 0 18px; }
+.analysis-comparison-legend button {
+  background: #fff;
+  border: 1px solid #e1d6eb;
+  border-left: 4px solid var(--line);
+  border-radius: 6px;
+  color: #49335c;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+.analysis-comparison-legend button[aria-pressed="false"] {
+  color: #685c74;
+  text-decoration: line-through;
+}
+.analysis-comparison-table caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 0 10px 6px;
+}
+.analysis-comparison-table th, .analysis-comparison-table td { white-space: nowrap; }
