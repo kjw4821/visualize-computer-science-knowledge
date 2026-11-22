@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="알고리즘 · 정렬 수업 틀">
+  <meta name="description" content="알고리즘 · 버블, 선택, 삽입, 병합 정렬 실습">
   <title>정렬 · CS Knowledge</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="algorithm-sorting.css">
+  <script src="step-player.js" defer></script>
   <script src="algorithm-lesson.js" defer></script>
+  <script src="algorithm-sorting.js" defer></script>
 </head>
 <body>
   <header><a class="brand" href="index.html">CS Knowledge</a></header>
@@ -23,7 +26,66 @@
     </div>
     <section id="lesson-panel" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
       <div class="array-concept"><h2 id="lesson-topic">버블 정렬</h2></div>
-      <div class="array-visual lesson-placeholder"><span class="preparing">준비 중</span><p>수업 내용을 준비 중입니다.</p></div>
+      <div id="sorting-placeholder" class="array-visual lesson-placeholder" hidden><span class="preparing">준비 중</span><p>수업 내용 준비 중</p></div>
+      <div id="sorting-lesson">
+        <div class="array-concept">
+          <p data-sort-topic="tab-0">이웃한 두 값을 비교하고, 왼쪽 값이 더 크면 교환해 큰 값을 오른쪽으로 이동</p>
+          <p data-sort-topic="tab-1" hidden>정렬되지 않은 구간에서 최솟값을 찾아 그 구간의 맨 앞에 배치</p>
+          <p data-sort-topic="tab-2" hidden>현재 값(key)보다 큰 왼쪽 원소를 오른쪽으로 밀고, 빈칸에 key를 삽입</p>
+          <p data-sort-topic="tab-3" hidden>배열을 두 구간으로 나누어 각각 정렬한 뒤, 작은 값부터 임시 배열에 담아 병합</p>
+        </div>
+        <form id="sorting-settings" class="array-controls sorting-settings" novalidate>
+          <label>원소 개수 <input id="sorting-size" type="number" min="2" max="20" step="1" value="5" required aria-describedby="sorting-size-range"></label>
+          <span id="sorting-size-range">2~20개</span>
+          <span id="sorting-size-error" class="tree-error" role="alert"></span>
+        </form>
+        <div class="array-visual">
+          <div class="visual-heading"><span>오름차순 정렬</span><button id="sorting-run" class="reset-button" type="button">시작</button></div>
+          <div id="sorting-viewport" class="sorting-viewport" tabindex="0" role="region" aria-label="배열 막대 영역">
+            <p class="sorting-row-label" data-sort-topic="tab-3" hidden>원본 배열</p>
+            <div id="sorting-chart" class="sorting-chart" role="img" aria-label="정렬할 배열"></div>
+            <div class="sorting-buffer-panel" data-sort-topic="tab-3" hidden>
+              <p class="sorting-row-label">임시 배열</p>
+              <div id="sorting-buffer" class="sorting-buffer" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="array-meta sorting-meta">
+            <span id="sorting-metrics">비교 0회 · 교환 0회</span>
+            <div id="sorting-swap-legend"><span class="sorting-active-key">비교·교환 대상</span><span class="sorting-candidate-key" data-sort-topic="tab-1" hidden>최솟값 후보</span><span class="sorting-fixed-key">정렬 확정</span></div>
+            <div data-sort-topic="tab-2" hidden><span class="sorting-active-key">비교·이동 대상</span><span class="sorting-candidate-key">보관한 key</span><span class="sorting-fixed-key">정렬된 구간</span></div>
+            <div data-sort-topic="tab-3" hidden><span class="sorting-left-key">왼쪽 구간</span><span class="sorting-right-key">오른쪽 구간</span><span class="sorting-active-key">비교·복사 대상</span></div>
+          </div>
+        </div>
+        <div id="sorting-feedback" class="array-feedback" aria-live="polite" aria-atomic="true" hidden>
+          <code id="sorting-code"></code><p id="sorting-message"></p>
+        </div>
+        <div id="sorting-controls" class="step-controls" hidden>
+          <button id="sorting-prev" type="button" aria-label="이전 단계">←</button>
+          <div class="step-playback">
+            <div class="step-caption"><span id="sorting-count"></span><label class="step-mode"><span id="sorting-status">자동 진행</span><input id="sorting-auto" type="checkbox" checked aria-label="자동 진행"></label></div>
+            <div id="sorting-progress" class="step-progress" aria-hidden="true"></div>
+          </div>
+          <button id="sorting-next" type="button" aria-label="다음 단계">→</button>
+        </div>
+        <aside class="complexity-note" data-sort-topic="tab-0">
+          <strong>시간 · 최선 Θ(n), 평균·최악 Θ(n²) / 보조 공간 · Θ(1)</strong>
+          <p>한 바퀴 동안 교환이 없으면 종료 · 이미 정렬된 배열은 n−1번 비교 · 역순의 서로 다른 값은 n(n−1)/2번 비교하고 교환</p>
+        </aside>
+        <aside class="complexity-note" data-sort-topic="tab-1" hidden>
+          <strong>시간 · 최선·평균·최악 Θ(n²) / 보조 공간 · Θ(1)</strong>
+          <p>입력 순서와 관계없이 n(n−1)/2번 비교 · 최솟값이 현재 자리와 다를 때만 교환하여 최대 n−1번 교환</p>
+        </aside>
+        <aside class="complexity-note" data-sort-topic="tab-2" hidden>
+          <strong>시간 · 최선 Θ(n), 평균·최악 Θ(n²) / 보조 공간 · Θ(1)</strong>
+          <p>이미 정렬된 배열은 n−1번 비교하고 밀기 0회 · 역순의 서로 다른 값은 비교와 밀기 각각 n(n−1)/2회</p>
+          <p>같은 값은 밀지 않아 입력 순서 유지 · 밀기 횟수는 큰 원소를 오른쪽으로 옮긴 횟수</p>
+        </aside>
+        <aside class="complexity-note" data-sort-topic="tab-3" hidden>
+          <strong>시간 · 최선·평균·최악 Θ(n log n) / 보조 공간 · Θ(n)</strong>
+          <p>분할 깊이는 Θ(log n) · 각 깊이에서 병합할 원소 수는 최대 n개 · 임시 배열은 최대 n칸</p>
+          <p>값이 같으면 왼쪽 구간의 원소를 먼저 복사해 입력 순서 유지</p>
+        </aside>
+      </div>
     </section>
     <a class="back-link" href="algorithms.html">← 알고리즘 목록</a>
   </main>

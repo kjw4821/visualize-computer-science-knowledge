@@ -5,6 +5,7 @@ const panel = document.querySelector('#lesson-panel');
 const topic = document.querySelector('#lesson-topic');
 
 function selectTab(tab) {
+  const changed = panel.getAttribute('aria-labelledby') !== tab.id;
   tabs.forEach(item => {
     const selected = item === tab;
     item.setAttribute('aria-selected', String(selected));
@@ -12,6 +13,7 @@ function selectTab(tab) {
   });
   panel.setAttribute('aria-labelledby', tab.id);
   topic.textContent = tab.textContent;
+  if (changed) panel.dispatchEvent(new CustomEvent('lesson-tab-change', { detail: tab.id }));
 }
 
 tabs.forEach((tab, index) => {
