@@ -3,10 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="알고리즘 · 탐색 수업 틀">
+  <meta name="description" content="알고리즘 · 이진 탐색, BFS, DFS 단계별 실습">
   <title>탐색 · CS Knowledge</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="algorithm-search.css">
+  <script src="step-player.js" defer></script>
   <script src="algorithm-lesson.js" defer></script>
+  <script src="algorithm-search.js" defer></script>
 </head>
 <body>
   <header><a class="brand" href="index.html">CS Knowledge</a></header>
@@ -20,7 +23,44 @@
     </div>
     <section id="lesson-panel" role="tabpanel" aria-labelledby="tab-0" tabindex="0">
       <div class="array-concept"><h2 id="lesson-topic">이진 탐색</h2></div>
-      <div class="array-visual lesson-placeholder"><span class="preparing">준비 중</span><p>수업 내용을 준비 중입니다.</p></div>
+      <div class="array-concept"><p id="search-description"></p></div>
+      <form id="search-form" novalidate>
+        <div class="array-controls search-settings" id="search-array-settings">
+          <label>원소 개수 <input id="search-size" type="number" min="1" max="20" step="1" value="7" required aria-describedby="search-input-hint search-error"></label>
+          <label>찾을 값 <input id="search-target" type="number" min="-9999" max="9999" step="1" required aria-describedby="search-error"></label>
+          <small id="search-input-hint">1~20개 · 무작위 정수를 생성해 오름차순으로 배치</small>
+        </div>
+        <div class="array-controls search-settings" id="search-graph-settings" hidden>
+          <label>시작 정점 <select id="search-start"></select></label>
+        </div>
+        <p id="search-error" class="tree-error" role="alert" hidden></p>
+        <div class="array-visual search-visual">
+          <div class="visual-heading"><span id="search-visual-title"></span><button id="search-run" class="reset-button" type="submit">시작</button></div>
+          <div id="search-array" class="search-array" role="region" aria-label="배열 시각화" tabindex="0"></div>
+          <div id="search-graph-region" class="search-graph-region" hidden>
+            <svg id="search-graph" class="search-graph" viewBox="0 0 440 184" role="img" aria-label="무방향 그래프 · A–B, A–C, B–D, B–E, C–E, C–F · G는 고립 정점"></svg>
+            <section id="search-worklist" class="search-worklist" aria-labelledby="search-worklist-title">
+              <h3 id="search-worklist-title"></h3>
+              <p id="search-worklist-direction"></p>
+              <ol id="search-worklist-items" role="list"></ol>
+              <p id="search-worklist-empty">비어 있음</p>
+            </section>
+          </div>
+          <div class="array-meta search-meta"><span id="search-metrics"></span><span id="search-legend"></span></div>
+        </div>
+      </form>
+      <div id="search-feedback" class="array-feedback search-feedback" aria-live="polite" aria-atomic="true" hidden>
+        <code id="search-code"></code><p id="search-message"></p>
+      </div>
+      <div id="search-controls" class="step-controls" hidden>
+        <button id="search-prev" type="button" aria-label="이전 단계">←</button>
+        <div class="step-playback">
+          <div class="step-caption"><span id="search-count"></span><label class="step-mode"><span id="search-status">자동 진행</span><input id="search-auto" type="checkbox" checked aria-label="자동 진행"></label></div>
+          <div class="step-progress" aria-hidden="true"><span id="search-progress" class="step-progress-fill"></span></div>
+        </div>
+        <button id="search-next" type="button" aria-label="다음 단계">→</button>
+      </div>
+      <aside class="complexity-note"><strong id="search-complexity"></strong><p id="search-complexity-detail"></p></aside>
     </section>
     <a class="back-link" href="algorithms.html">← 알고리즘 목록</a>
   </main>
