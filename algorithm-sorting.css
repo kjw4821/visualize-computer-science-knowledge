@@ -108,3 +108,11 @@
   border-color: #81b4b8;
   background: #cce9e9;
 }
+.sorting-bar.is-partition:not(.is-active):not(.is-candidate):not(.is-fixed),
+.sorting-meta .sorting-partition-key::before {
+  border-color: #9e7bbf;
+  background: #e3d1f8;
+}
+.sorting-meta > .sorting-legend-wrap { flex-wrap: wrap; }
+.sorting-bar.is-heap-parent { outline: 2px solid #b17a25; }
+.sorting-meta .sorting-parent-key::before { border-color: #b17a25; background: #ffe3ad; }

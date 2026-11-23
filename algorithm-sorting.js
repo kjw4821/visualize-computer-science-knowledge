@@ -182,6 +182,138 @@ function mergeSortSteps(values) {
   return steps;
 }
 
+function quickSortSteps(values) {
+  const items = values.map((value, id) => ({ value, id }));
+  const steps = [];
+  const fixed = Array(items.length).fill(false);
+  let comparisons = 0;
+  let swaps = 0;
+
+  function record(code, message, { partition = null, candidate = null, active = [], willSwap = false } = {}) {
+    steps.push({ items: [...items], fixed: [...fixed], comparisons, swaps,
+      code, message, partition, candidate, active, willSwap });
+  }
+
+  function swap(left, right) {
+    [items[left], items[right]] = [items[right], items[left]];
+    swaps++;
+  }
+
+  function sort(start, end) {
+    if (start > end) return;
+    if (start === end) {
+      fixed[start] = true;
+      record('if (lo == hi) return', `원소가 하나인 구간 · ${items[start].value}의 위치 확정`,
+        { active: [items[start].id] });
+      return;
+    }
+
+    const pivot = items[end];
+    const partition = { start, end };
+    let boundary = start;
+    record('pivot = a[hi]', `인덱스 ${start}~${end}의 마지막 값 ${pivot.value}를 피벗으로 선택`,
+      { partition, candidate: pivot.id });
+    for (let scan = start; scan < end; scan++) {
+      const current = items[scan];
+      const smaller = current.value < pivot.value;
+      comparisons++;
+      const willSwap = smaller && boundary !== scan;
+      const active = willSwap ? [items[boundary].id, current.id] : [current.id];
+      const outcome = smaller ? (willSwap ? '왼쪽 구간으로 교환 예정' : '현재 자리를 왼쪽 구간에 포함') :
+        '오른쪽 구간에 유지';
+      record('a[j] < pivot', `${current.value}와 피벗 ${pivot.value} 비교 · ${outcome}`,
+        { partition, candidate: pivot.id, active, willSwap });
+      if (smaller) {
+        if (willSwap) {
+          swap(boundary, scan);
+          record('swap(a[i], a[j])', `${current.value}를 왼쪽 구간으로 이동`,
+            { partition, candidate: pivot.id, active });
+        }
+        boundary++;
+      }
+    }
+    if (boundary !== end) {
+      record('swap(a[i], a[hi])', `피벗 ${pivot.value}를 인덱스 ${boundary}로 이동 예정`,
+        { partition, candidate: pivot.id, active: [items[boundary].id, pivot.id], willSwap: true });
+      swap(boundary, end);
+    }
+    fixed[boundary] = true;
+    record('p = i', `피벗 ${pivot.value}의 위치 확정 · 왼쪽 ${boundary - start}개, 오른쪽 ${end - boundary}개로 분할`,
+      { partition, active: [pivot.id] });
+    sort(start, boundary - 1);
+    sort(boundary + 1, end);
+  }
+
+  sort(0, items.length - 1);
+  record('return a', '오름차순 정렬 완료');
+  return steps;
+}
+
+function heapSortSteps(values) {
+  const items = values.map((value, id) => ({ value, id }));
+  const steps = [];
+  let comparisons = 0;
+  let swaps = 0;
+  let fixedFrom = items.length;
+
+  function record(code, message, { active = [], parent = null, willSwap = false } = {}) {
+    steps.push({ items: [...items], comparisons, swaps, fixedFrom, code, message, active, parent, willSwap });
+  }
+
+  function swap(left, right) {
+    [items[left], items[right]] = [items[right], items[left]];
+    swaps++;
+  }
+
+  function siftDown(start) {
+    let root = start;
+    while (2 * root + 1 < fixedFrom) {
+      const left = 2 * root + 1;
+      const right = left + 1;
+      const parent = items[root].id;
+      let child = left;
+      if (right < fixedFrom) {
+        comparisons++;
+        if (items[right].value > items[left].value) child = right;
+        record('a[right] > a[left]', `자식 ${items[left].value}와 ${items[right].value} 비교 · ${items[child].value} 선택`,
+          { parent, active: [items[left].id, items[right].id] });
+      }
+
+      const active = [parent, items[child].id];
+      const willSwap = items[child].value > items[root].value;
+      comparisons++;
+      record('a[child] > a[parent]', `부모 ${items[root].value}와 자식 ${items[child].value} 비교 · ${willSwap ? '교환 예정' : '현재 위치 유지'}`,
+        { parent, active, willSwap });
+      if (!willSwap) break;
+      swap(root, child);
+      record('swap(a[parent], a[child])', `큰 값 ${items[root].value}를 부모 위치로 이동`, { parent, active });
+      root = child;
+    }
+  }
+
+  for (let root = Math.floor(items.length / 2) - 1; root >= 0; root--) {
+    record('siftDown(i)', `인덱스 ${root}에서 아래로 내려가며 최대 힙 구성`, { parent: items[root].id });
+    siftDown(root);
+  }
+  if (items.length > 1) record('buildMaxHeap(a)', `최대 힙 완성 · 루트의 최댓값 ${items[0].value}`, { parent: items[0].id });
+
+  while (fixedFrom > 1) {
+    const end = fixedFrom - 1;
+    const max = items[0];
+    record('swap(a[0], a[end])', `최댓값 ${max.value}를 남은 힙의 마지막 자리로 이동 예정`,
+      { parent: max.id, active: [max.id, items[end].id], willSwap: true });
+    swap(0, end);
+    fixedFrom = end;
+    record('heapSize--', `${max.value}의 위치 확정 · 앞 ${fixedFrom}개에서 최대 힙 복구`,
+      { active: [max.id], parent: items[0].id });
+    siftDown(0);
+  }
+
+  fixedFrom = 0;
+  record('return a', '오름차순 정렬 완료');
+  return steps;
+}
+
 function mountSortingLesson() {
   const find = id => document.getElementById(id);
   const chart = find('sorting-chart');
@@ -198,7 +330,9 @@ function mountSortingLesson() {
     'tab-0': bubbleSortSteps,
     'tab-1': selectionSortSteps,
     'tab-2': insertionSortSteps,
-    'tab-3': mergeSortSteps
+    'tab-3': mergeSortSteps,
+    'tab-4': quickSortSteps,
+    'tab-5': heapSortSteps
   };
   const bufferRow = find('sorting-buffer');
   const holeMarker = document.createElement('div');
@@ -263,9 +397,12 @@ function mountSortingLesson() {
     const step = started ? steps[index] : initial;
     const insertion = sorter === insertionSortSteps;
     const merge = sorter === mergeSortSteps;
+    const quick = sorter === quickSortSteps;
+    const heap = sorter === heapSortSteps;
     const range = step.range;
+    const partition = step.partition;
     chart.classList.toggle('is-insertion', insertion);
-    swapLegend.hidden = insertion || merge;
+    swapLegend.hidden = insertion || merge || quick || heap;
     holeMarker.hidden = !step.key;
     if (step.key) holeMarker.style.setProperty('--position', `${step.hole / bars.length * 100}%`);
     step.items.forEach((item, position) => {
@@ -275,9 +412,11 @@ function mountSortingLesson() {
       bar.classList.toggle('is-key', item === null);
       bar.classList.toggle('is-active', step.active.includes(id));
       bar.classList.toggle('is-candidate', id === step.candidate);
+      bar.classList.toggle('is-heap-parent', id === step.parent);
       bar.classList.toggle('is-merge-left', Boolean(range && position >= range.start && position < range.middle));
       bar.classList.toggle('is-merge-right', Boolean(range && position >= range.middle && position < range.end));
-      bar.classList.toggle('is-fixed', position < step.fixedUntil || position >= step.fixedFrom);
+      bar.classList.toggle('is-partition', Boolean(partition && position >= partition.start && position <= partition.end));
+      bar.classList.toggle('is-fixed', Boolean(step.fixed?.[position]) || position < step.fixedUntil || position >= step.fixedFrom);
       const sortedUntil = step.key ? step.hole : started ? step.sortedUntil : Number(insertion);
       bar.classList.toggle('is-sorted', position < sortedUntil);
       arrow.textContent = id === step.source ? '↓' : id === step.shiftId ? '→' :
@@ -297,7 +436,13 @@ function mountSortingLesson() {
     const focusIds = step.active.length ? step.active : [step.candidate];
     const positions = focusIds.map(id => step.items.findIndex(item => item?.id === id)).filter(position => position >= 0);
     if (step.key) positions.push(step.hole);
+    if (step.parent !== null && step.parent !== undefined) {
+      positions.push(step.items.findIndex(item => item.id === step.parent));
+    }
     if (range && !positions.length) positions.push(range.start, range.end - 1);
+    if (quick && step.candidate !== null && step.candidate !== undefined && step.active.length) {
+      positions.push(step.items.findIndex(item => item.id === step.candidate));
+    }
     if (positions.length && viewport.clientWidth) {
       const slotWidth = chart.clientWidth / bars.length;
       const left = chart.offsetLeft + Math.min(...positions) * slotWidth;
@@ -377,5 +522,7 @@ if (typeof module !== 'undefined') {
   module.exports.selectionSortSteps = selectionSortSteps;
   module.exports.insertionSortSteps = insertionSortSteps;
   module.exports.mergeSortSteps = mergeSortSteps;
+  module.exports.quickSortSteps = quickSortSteps;
+  module.exports.heapSortSteps = heapSortSteps;
 }
 if (typeof document !== 'undefined') mountSortingLesson();
